@@ -511,6 +511,6 @@ namespace NF.AI.PathFinding.JPSPlus
         public int Width { get; private set; }
         public int Height { get; private set; }
         public int[,] BlockLUT;
-        JPSPlusMapBakerBlock[] Blocks;
+        public JPSPlusMapBakerBlock[] Blocks;
     }
 }
