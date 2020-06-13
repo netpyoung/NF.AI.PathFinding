@@ -56,10 +56,9 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                 {
                     return false;
                 }
-                (AStarNode AStarNode, EDirFlags Dir) curr = mOpenList.First();
+                (AStarNode AStarNode, EDirFlags Dir) curr = mOpenList.Dequeue();
                 AStarNode currAStarNode = curr.AStarNode;
                 EDirFlags currDir = curr.Dir;
-                mOpenList.Remove(curr);
                 mCloseList.Add(currAStarNode);
 
                 Int2 currPos = currAStarNode.Position;

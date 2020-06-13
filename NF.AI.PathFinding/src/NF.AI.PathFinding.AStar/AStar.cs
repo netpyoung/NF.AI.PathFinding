@@ -38,7 +38,7 @@ namespace NF.AI.PathFinding.AStar
                     return false;
                 }
 
-                AStarNode curr = mOpenList.First();
+                AStarNode curr = mOpenList.Dequeue();
                 if (curr == mGoal)
                 {
                     return true;

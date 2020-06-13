@@ -58,10 +58,9 @@ namespace NF.AI.PathFinding.JPS
                 {
                     return false;
                 }
-                (AStarNode Node, EDirFlags Dir) curr = mOpenList.First();
+                (AStarNode Node, EDirFlags Dir) curr = mOpenList.Dequeue();
                 AStarNode currNode = curr.Node;
                 EDirFlags currDir = curr.Dir;
-                mOpenList.Remove(curr);
                 mCloseList.Add(currNode);
 
                 Int2 currPos = currNode.Position;
