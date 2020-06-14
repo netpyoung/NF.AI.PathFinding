@@ -1,4 +1,5 @@
 ﻿using NF.Mathematics;
+
 namespace NF.AI.PathFinding.Common
 {
     public class AStarNode

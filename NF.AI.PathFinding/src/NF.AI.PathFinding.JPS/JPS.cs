@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
-using NF.AI.PathFinding.Common;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace NF.AI.PathFinding.JPS
 {
@@ -86,25 +83,28 @@ namespace NF.AI.PathFinding.JPS
                     }
 
                     Int2 jumpPos = jumpResult.Value;
-                    AStarNode jumpNode = GetOrCreatedNode(jumpPos);
+                    AStarNode jumpNode = GetOrCreateNode(jumpPos);
                     if (mCloseList.Contains(jumpNode))
                     {
                         continue;
                     }
+
                     int jumpG = G(currNode, jumpNode);
                     (AStarNode, EDirFlags) openJump = (jumpNode, succesorDir);
-                    if (mOpenList.Contains(openJump))
+                    if (!mOpenList.Contains(openJump))
                     {
-                        if (jumpG > jumpNode.G)
-                        {
-                            continue;
-                        }
-                        mOpenList.Remove(openJump);
+                        jumpNode.Parent = currNode;
+                        jumpNode.G = jumpG;
+                        jumpNode.H = H(jumpNode, mGoal);
+                        mOpenList.Enqueue(openJump, jumpNode.F);
                     }
-                    jumpNode.Parent = currNode;
-                    jumpNode.G = jumpG;
-                    jumpNode.H = H(jumpNode, mGoal);
-                    mOpenList.Enqueue(openJump, jumpNode.F);
+                    else if (jumpG < jumpNode.G)
+                    {
+                        jumpNode.Parent = currNode;
+                        jumpNode.G = jumpG;
+                        jumpNode.H = H(jumpNode, mGoal);
+                        mOpenList.UpdatePriority(openJump, jumpNode.F);
+                    }
                 }
                 step--;
             }
@@ -115,7 +115,7 @@ namespace NF.AI.PathFinding.JPS
             {
                 return;
             }
-            mStart = GetOrCreatedNode(p);
+            mStart = GetOrCreateNode(p);
         }
 
         public void SetGoal(Int2 p)
@@ -124,7 +124,7 @@ namespace NF.AI.PathFinding.JPS
             {
                 return;
             }
-            mGoal = GetOrCreatedNode(p);
+            mGoal = GetOrCreateNode(p);
         }
 
         public void ToggleWall(Int2 p)
@@ -186,7 +186,7 @@ namespace NF.AI.PathFinding.JPS
         // =======================
         // Private Methods
         // =======================
-        private AStarNode GetOrCreatedNode(Int2 p)
+        private AStarNode GetOrCreateNode(Int2 p)
         {
             if (mCreatedNodes.TryGetValue(p, out AStarNode createdNode))
             {
@@ -222,9 +222,9 @@ namespace NF.AI.PathFinding.JPS
                     continue;
                 }
 
-                if (IsDiagonal(dir))
+                if (DirFlags.IsDiagonal(dir))
                 {
-                    Int2 dp = GetDirectionByDirFlags(dir);
+                    Int2 dp = DirFlags.ToPos(dir);
                     if (!IsWalkable(new Int2(pos.X + dp.X, pos.Y)) &&
                         !IsWalkable(new Int2(pos.X, pos.Y + dp.Y)))
                     {
@@ -235,7 +235,6 @@ namespace NF.AI.PathFinding.JPS
             }
             return ret;
         }
-
 
         internal EDirFlags ForcedNeighbourDir(Int2 n, EDirFlags dir)
         {
@@ -385,16 +384,16 @@ namespace NF.AI.PathFinding.JPS
                     return next;
                 }
 
-                if (IsDiagonal(dir))
+                if (DirFlags.IsDiagonal(dir))
                 {
                     // TODO(pyoung): TOC 가능하게 수정 할 수 있나?
                     // d1: EAST  | WEST
-                    if (JumpOrNull(next, DiagonalToEastWest(dir), goal).HasValue)
+                    if (JumpOrNull(next, DirFlags.DiagonalToEastWest(dir), goal).HasValue)
                     {
                         return next;
                     }
                     // d2: NORTH | SOUTH
-                    if (JumpOrNull(next, DiagonalToNorthSouth(dir), goal).HasValue)
+                    if (JumpOrNull(next, DirFlags.DiagonalToNorthSouth(dir), goal).HasValue)
                     {
                         return next;
                     }
@@ -406,49 +405,6 @@ namespace NF.AI.PathFinding.JPS
         // =========================================
         // Statics
         // =========================================
-        static bool IsDiagonal(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST:
-                    return true;
-                case EDirFlags.NONE:
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST:
-                case EDirFlags.ALL:
-                default:
-                    return false;
-            }
-        }
-
-        static Int2[] DIRECTIONS = new Int2[] {
-            new Int2(0, -1),	// NORTH
-	        new Int2(0, 1),		// SOUTH
-	        new Int2(1, 0),		// EAST
-	        new Int2(-1, 0),	// WEST
-	        new Int2(1, -1),	// NORTHEAST
-	        new Int2(-1, -1),	// NORTHWEST
-	        new Int2(1, 1),		// SOUTHEAST
-	        new Int2(-1, 1),	// SOUTHWEST
-        };
-        static Int2 GetDirectionByDirFlags(EDirFlags dir)
-        {
-            for (int i = 0; i < 8; ++i)
-            {
-                if ((dir & (EDirFlags)(1 << i)) == EDirFlags.NONE)
-                {
-                    continue;
-                }
-                return DIRECTIONS[i];
-            }
-            throw new ArgumentOutOfRangeException($"invalid range - {dir}");
-        }
-
         internal static EDirFlags NaturalNeighbours(EDirFlags dir)
         {
 
@@ -466,32 +422,6 @@ namespace NF.AI.PathFinding.JPS
                 case EDirFlags.ALL:
                 default:
                     return dir;
-            }
-        }
-
-        static EDirFlags DiagonalToEastWest(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.SOUTHEAST: return EDirFlags.EAST;
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHWEST: return EDirFlags.WEST;
-                default:
-                    return EDirFlags.NONE;
-            }
-        }
-
-        static EDirFlags DiagonalToNorthSouth(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST: return EDirFlags.NORTH;
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST: return EDirFlags.SOUTH;
-                default:
-                    return EDirFlags.NONE;
             }
         }
 
@@ -514,7 +444,7 @@ namespace NF.AI.PathFinding.JPS
         internal static int H(AStarNode n, AStarNode goal)
         {
             // calculate estimated cost
-            return Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y) * 10;
+            return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
 
         // =======================

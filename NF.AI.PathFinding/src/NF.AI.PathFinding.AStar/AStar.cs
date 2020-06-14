@@ -1,10 +1,8 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
-using NF.AI.PathFinding.Common;
+using System;
+using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.AStar
 {
@@ -12,21 +10,30 @@ namespace NF.AI.PathFinding.AStar
     {
         public AStar(int width, int height)
         {
-            mNodes = new AStarNode[width * height];
-            mWalls = new bool[width * height];
+            Width = width;
+            Height = height;
+            mNodes = new AStarNode[Height, Width];
+            mWalls = new bool[Height, Width];
+        }
+
+        public AStar(bool[,] walls)
+        {
+            Height = walls.GetLength(0);
+            Width = walls.GetLength(1);
+            mNodes = new AStarNode[Height, Width];
+            mWalls = walls;
         }
 
         // ============================
         // Public Methods
         // ============================
 
-
-        public void StepAll()
+        public bool StepAll()
         {
             mOpenList.Clear();
             mCloseList.Clear();
             mOpenList.Enqueue(mStart, mStart.F);
-            Step(int.MaxValue);
+            return Step(int.MaxValue);
         }
 
         public bool Step(int stepCount)
@@ -46,10 +53,9 @@ namespace NF.AI.PathFinding.AStar
 
                 mCloseList.Add(curr);
 
-                for (int i = 0; i < 8; ++i)
+                for (int i = 0b10000000; i > 0; i >>= 1)
                 {
-                    Int2 dir = DIRECTIONS[i];
-                    AStarNode adjacent = GetNodeOrNull(curr.Position + dir);
+                    AStarNode adjacent = GetNodeOrNull(curr.Position + DirFlags.ToPos((EDirFlags)i));
                     if (adjacent == null)
                     {
                         continue;
@@ -63,46 +69,56 @@ namespace NF.AI.PathFinding.AStar
                         continue;
                     }
 
-                    int g = G(curr, adjacent);
-                    if (mOpenList.Contains(adjacent))
+                    int nextG = G(curr, adjacent);
+                    if (!mOpenList.Contains(adjacent))
                     {
-                        if (g >= adjacent.G)
-                        {
-                            continue;
-                        }
-                        mOpenList.Remove(adjacent);
+                        adjacent.Parent = curr;
+                        adjacent.G = nextG;
+                        adjacent.H = H(adjacent, mGoal);
+                        mOpenList.Enqueue(adjacent, adjacent.F);
                     }
-                    adjacent.Parent = curr;
-                    adjacent.G = g;
-                    adjacent.H = H(adjacent, mGoal);
-                    mOpenList.Enqueue(adjacent, adjacent.F);
+                    else if (nextG < adjacent.G)
+                    {
+                        adjacent.Parent = curr;
+                        adjacent.G = nextG;
+                        adjacent.H = H(adjacent, mGoal);
+                        mOpenList.UpdatePriority(adjacent, adjacent.F);
+                    }
                 }
             }
             return false;
         }
 
-        public void SetStart(Int2 pos)
+        public bool SetStart(Int2 pos)
         {
-            if (IsInBoundary(pos))
+            if (!IsInBoundary(pos))
             {
-                mStart = GetNodeOrNull(pos);
+                return false;
             }
+
+            mStart = GetNodeOrNull(pos);
+            return true;
         }
 
-        public void SetGoal(Int2 pos)
+        public bool SetGoal(Int2 pos)
         {
-            if (IsInBoundary(pos))
+            if (!IsInBoundary(pos))
             {
-                mGoal = GetNodeOrNull(pos);
+                return false;
             }
+
+            mGoal = GetNodeOrNull(pos);
+            return true;
         }
 
-        public void ToggleWall(Int2 pos)
+        public bool ToggleWall(Int2 pos)
         {
-            if (IsInBoundary(pos))
+            if (!IsInBoundary(pos))
             {
-                mWalls[pos.X + pos.Y * this.Width] = !mWalls[pos.X + pos.Y * this.Width];
+                return false;
             }
+            mWalls[pos.Y, pos.X] = !mWalls[pos.Y, +pos.X];
+            return true;
         }
 
         public List<AStarNode> GetPaths()
@@ -139,7 +155,7 @@ namespace NF.AI.PathFinding.AStar
             return mCloseList;
         }
 
-        public bool[] GetWalls()
+        public bool[,] GetWalls()
         {
             return mWalls;
         }
@@ -151,7 +167,7 @@ namespace NF.AI.PathFinding.AStar
 
         bool IsInBoundary(int x, int y)
         {
-            return (0 <= x && x < this.Width) && (0 <= y && y < this.Width);
+            return (0 <= x && x < this.Width) && (0 <= y && y < this.Height);
         }
 
         AStarNode GetNodeOrNull(Int2 pos)
@@ -162,18 +178,18 @@ namespace NF.AI.PathFinding.AStar
             {
                 return null;
             }
-            AStarNode node = mNodes[x + y * this.Width];
+            AStarNode node = mNodes[y, x];
             if (node != null)
             {
                 return node;
             }
             node = new AStarNode(x, y);
-            mNodes[x + y * this.Width] = node;
+            mNodes[y, x] = node;
             return node;
         }
         bool IsWall(Int2 pos)
         {
-            return mWalls[pos.X + pos.Y * this.Width];
+            return mWalls[pos.Y, pos.X];
         }
         // ============================
         // Properties
@@ -186,21 +202,10 @@ namespace NF.AI.PathFinding.AStar
         // ============================
         AStarNode mStart = null;
         AStarNode mGoal = null;
-        readonly AStarNode[] mNodes;
+        readonly AStarNode[,] mNodes;
         readonly PriorityQueue<AStarNode> mOpenList = new PriorityQueue<AStarNode>();
         readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        readonly bool[] mWalls;
-
-        static Int2[] DIRECTIONS = new Int2[] {
-            new Int2(0, -1),	// NORTH
-	        new Int2(0, 1),		// SOUTH
-	        new Int2(1, 0),		// EAST
-	        new Int2(-1, 0),	// WEST
-	        new Int2(1, -1),	// NORTHEAST
-	        new Int2(-1, -1),	// NORTHWEST
-	        new Int2(1, 1),		// SOUTHEAST
-	        new Int2(-1, 1),	// SOUTHWEST
-        };
+        readonly bool[,] mWalls;
 
         static int G(AStarNode from, AStarNode adjacent)
         {

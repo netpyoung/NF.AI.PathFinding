@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NF.AI.PathFinding.Common;
 using NF.Mathematics;
-using NF.AI.PathFinding.Common;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NF.AI.PathFinding.JPSPlus

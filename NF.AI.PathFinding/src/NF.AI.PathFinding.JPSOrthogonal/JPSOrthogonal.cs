@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
-using NF.AI.PathFinding.Common;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace NF.AI.PathFinding.JPSOrthogonal
 {
-    public class JPSOrthogonal
+    public class JPSOrthogonal // WIP
     {
         public JPSOrthogonal()
         {
@@ -35,7 +34,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         {
             mOpenList.Clear();
             mCloseList.Clear();
-            foreach (var AStarNode in mCreatedAStarNodes.Values)
+            foreach (var AStarNode in mCreateNodes.Values)
             {
                 AStarNode.Refresh();
             }
@@ -57,11 +56,11 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                     return false;
                 }
                 (AStarNode AStarNode, EDirFlags Dir) curr = mOpenList.Dequeue();
-                AStarNode currAStarNode = curr.AStarNode;
+                AStarNode currNode = curr.AStarNode;
                 EDirFlags currDir = curr.Dir;
-                mCloseList.Add(currAStarNode);
+                mCloseList.Add(currNode);
 
-                Int2 currPos = currAStarNode.Position;
+                Int2 currPos = currNode.Position;
                 Int2 goalPos = mGoal.Position;
                 if (currPos == goalPos)
                 {
@@ -84,54 +83,60 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                     }
 
                     Int2 jumpPos = jumpResult.Value;
-                    AStarNode jumpAStarNode = GetOrCreatedAStarNode(jumpPos);
-                    if (mCloseList.Contains(jumpAStarNode))
+                    AStarNode jumpNode = GetOrCreateNode(jumpPos);
+                    if (mCloseList.Contains(jumpNode))
                     {
                         continue;
                     }
-                    int jumpG = G(currAStarNode, jumpAStarNode);
-                    (AStarNode, EDirFlags) openJump = (jumpAStarNode, succesorDir);
-                    if (mOpenList.Contains(openJump))
+
+                    int jumpG = G(currNode, jumpNode);
+                    (AStarNode, EDirFlags) openJump = (jumpNode, succesorDir);
+                    if (!mOpenList.Contains(openJump))
                     {
-                        if (jumpG > jumpAStarNode.G)
-                        {
-                            continue;
-                        }
-                        mOpenList.Remove(openJump);
+                        jumpNode.Parent = currNode;
+                        jumpNode.G = jumpG;
+                        jumpNode.H = H(jumpNode, mGoal);
+                        mOpenList.Enqueue(openJump, jumpNode.F);
                     }
-                    jumpAStarNode.Parent = currAStarNode;
-                    jumpAStarNode.G = jumpG;
-                    jumpAStarNode.H = H(jumpAStarNode, mGoal);
-                    mOpenList.Enqueue(openJump, jumpAStarNode.F);
+                    else if (jumpG < jumpNode.G)
+                    {
+                        jumpNode.Parent = currNode;
+                        jumpNode.G = jumpG;
+                        jumpNode.H = H(jumpNode, mGoal);
+                        mOpenList.UpdatePriority(openJump, jumpNode.F);
+                    }
                 }
                 step--;
             }
         }
-        public void SetStart(Int2 p)
+        public bool SetStart(Int2 p)
         {
             if (!IsInBoundary(p))
             {
-                return;
+                return false;
             }
-            mStart = GetOrCreatedAStarNode(p);
+            mStart = GetOrCreateNode(p);
+            return true;
         }
 
-        public void SetGoal(Int2 p)
+        public bool SetGoal(Int2 p)
         {
             if (!IsInBoundary(p))
             {
-                return;
+                return false;
             }
-            mGoal = GetOrCreatedAStarNode(p);
+            mGoal = GetOrCreateNode(p);
+            return true;
         }
 
-        public void ToggleWall(Int2 p)
+        public bool ToggleWall(Int2 p)
         {
             if (!IsInBoundary(p))
             {
-                return;
+                return false;
             }
             mWalls[p.Y, p.X] = !mWalls[p.Y, p.X];
+            return true;
         }
 
         public IReadOnlyList<AStarNode> GetPaths()
@@ -184,15 +189,15 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =======================
         // Private Methods
         // =======================
-        private AStarNode GetOrCreatedAStarNode(Int2 p)
+        private AStarNode GetOrCreateNode(Int2 p)
         {
-            if (mCreatedAStarNodes.TryGetValue(p, out AStarNode createdAStarNode))
+            if (mCreateNodes.TryGetValue(p, out AStarNode node))
             {
-                return createdAStarNode;
+                return node;
             }
-            AStarNode newAStarNode = new AStarNode(p);
-            mCreatedAStarNodes.Add(p, newAStarNode);
-            return newAStarNode;
+            AStarNode newNode = new AStarNode(p);
+            mCreateNodes.Add(p, newNode);
+            return newNode;
         }
 
         bool IsWalkable(Int2 p)
@@ -201,7 +206,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             {
                 return false;
             }
-            return !mWalls[p.Y, p.X + p.Y];
+            return !mWalls[p.Y, p.X];
         }
 
         bool IsInBoundary(Int2 p)
@@ -220,9 +225,9 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                     continue;
                 }
 
-                if (IsDiagonal(dir))
+                if (DirFlags.IsDiagonal(dir))
                 {
-                    Int2 dp = GetDirectionByDirFlags(dir);
+                    Int2 dp = DirFlags.ToPos(dir);
                     if (!IsWalkable(new Int2(pos.X + dp.X, pos.Y)) &&
                         !IsWalkable(new Int2(pos.X, pos.Y + dp.Y)))
                     {
@@ -249,12 +254,12 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return ret;
         }
 
-        internal EDirFlags ForcedNeighbourDir(Int2 n, EDirFlags dir)
+        internal EDirFlags OrthogonalForcedNeighbourDir(Int2 n, EDirFlags dir)
         {
             EDirFlags ret = EDirFlags.NONE;
 
             Int2 next = new Int2(0, 0);
-            if (((int)dir & 0b1111) != 0)
+            if (DirFlags.IsStraight(dir))
             {
                 next = n.Backward(dir);
             }
@@ -334,7 +339,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal EDirFlags SuccesorsDir(Int2 pos, EDirFlags dir)
         {
-            return NeighbourDir(pos) & (NaturalNeighbours(dir) | ForcedNeighbourDir(pos, dir));
+            return NeighbourDir(pos) & (NaturalNeighbours(dir) | OrthogonalForcedNeighbourDir(pos, dir));
         }
 
         internal Int2? JumpOrNull(Int2 p, EDirFlags dir, Int2 goal)
@@ -355,21 +360,21 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                     return next;
                 }
 
-                if ((ForcedNeighbourDir(next, dir) & OrthogonalNeighbourDir(next)) != EDirFlags.NONE)
+                if ((OrthogonalForcedNeighbourDir(next, dir) & OrthogonalNeighbourDir(next)) != EDirFlags.NONE)
                 {
                     return next;
                 }
 
-                if (IsDiagonal(dir))
+                if (DirFlags.IsDiagonal(dir))
                 {
                     // TODO(pyoung): TOC 가능하게 수정 할 수 있나?
                     // d1: EAST  | WEST
-                    if (JumpOrNull(next, DiagonalToEastWest(dir), goal).HasValue)
+                    if (JumpOrNull(next, DirFlags.DiagonalToEastWest(dir), goal).HasValue)
                     {
                         return next;
                     }
                     // d2: NORTH | SOUTH
-                    if (JumpOrNull(next, DiagonalToNorthSouth(dir), goal).HasValue)
+                    if (JumpOrNull(next, DirFlags.DiagonalToNorthSouth(dir), goal).HasValue)
                     {
                         return next;
                     }
@@ -381,92 +386,17 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =========================================
         // Statics
         // =========================================
-        static bool IsDiagonal(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST:
-                    return true;
-                case EDirFlags.NONE:
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST:
-                case EDirFlags.ALL:
-                default:
-                    return false;
-            }
-        }
-
-        static Int2[] DIRECTIONS = new Int2[] {
-            new Int2(0, -1),	// NORTH
-	        new Int2(0, 1),		// SOUTH
-	        new Int2(1, 0),		// EAST
-	        new Int2(-1, 0),	// WEST
-	        new Int2(1, -1),	// NORTHEAST
-	        new Int2(-1, -1),	// NORTHWEST
-	        new Int2(1, 1),		// SOUTHEAST
-	        new Int2(-1, 1),	// SOUTHWEST
-        };
-        static Int2 GetDirectionByDirFlags(EDirFlags dir)
-        {
-            for (int i = 0; i < 8; ++i)
-            {
-                if ((dir & (EDirFlags)(1 << i)) == EDirFlags.NONE)
-                {
-                    continue;
-                }
-                return DIRECTIONS[i];
-            }
-            throw new ArgumentOutOfRangeException($"invalid range - {dir}");
-        }
-
         static EDirFlags NaturalNeighbours(EDirFlags dir)
         {
 
             switch (dir)
             {
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST: return dir;
                 case EDirFlags.NORTHEAST: return EDirFlags.NORTHEAST | EDirFlags.NORTH | EDirFlags.EAST;
                 case EDirFlags.NORTHWEST: return EDirFlags.NORTHWEST | EDirFlags.NORTH | EDirFlags.WEST;
                 case EDirFlags.SOUTHEAST: return EDirFlags.SOUTHEAST | EDirFlags.SOUTH | EDirFlags.EAST;
                 case EDirFlags.SOUTHWEST: return EDirFlags.SOUTHWEST | EDirFlags.SOUTH | EDirFlags.WEST;
-                case EDirFlags.NONE:
-                case EDirFlags.ALL:
                 default:
                     return dir;
-            }
-        }
-
-        static EDirFlags DiagonalToEastWest(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.SOUTHEAST: return EDirFlags.EAST;
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHWEST: return EDirFlags.WEST;
-                default:
-                    return EDirFlags.NONE;
-            }
-        }
-
-        static EDirFlags DiagonalToNorthSouth(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST: return EDirFlags.NORTH;
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST: return EDirFlags.SOUTH;
-                default:
-                    return EDirFlags.NONE;
             }
         }
 
@@ -489,7 +419,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         internal static int H(AStarNode n, AStarNode goal)
         {
             // calculate estimated cost
-            return Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y) * 10;
+            return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
 
         // =======================
@@ -497,7 +427,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =======================
         AStarNode mStart = null;
         AStarNode mGoal = null;
-        readonly Dictionary<Int2, AStarNode> mCreatedAStarNodes = new Dictionary<Int2, AStarNode>();
+        readonly Dictionary<Int2, AStarNode> mCreateNodes = new Dictionary<Int2, AStarNode>();
         readonly PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)>();
         readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
         bool[,] mWalls = null;

@@ -72,5 +72,48 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine(isOk);
             Console.WriteLine("Hello World!");
         }
+
+        static void Main3(string[] args)
+        {
+            var walls = GetWalls(new string[] {
+                 "..X...X..",
+                 "......X..",
+                 ".XX...XX.",
+                 "..X......",
+                 "..X...X..",
+            });
+            var astar = new AStar.AStar(walls);
+            astar.SetStart(new Int2(0, 4));
+            astar.SetGoal(new Int2(7, 0));
+            bool isOk = astar.StepAll();
+            foreach (var path in astar.GetPaths())
+            {
+                Console.WriteLine(path.Position);
+            }
+            Console.WriteLine(isOk);
+            Console.WriteLine("Hello World!");
+        }
+
+        static void Main4(string[] args)
+        {
+            var walls = GetWalls(new string[] {
+                 "..X...X..",
+                 "......X..",
+                 ".XX...XX.",
+                 "..X......",
+                 "..X...X..",
+            });
+            var jpso = new JPSOrthogonal.JPSOrthogonal(walls);
+            jpso.SetStart(new Int2(0, 4));
+            jpso.SetGoal(new Int2(7, 0));
+                
+            bool isOk = jpso.StepAll();
+            foreach (var path in jpso.GetPaths())
+            {
+                Console.WriteLine(path.Position);
+            }
+            Console.WriteLine(isOk);
+            Console.WriteLine("Hello World!");
+        }
     }
 }

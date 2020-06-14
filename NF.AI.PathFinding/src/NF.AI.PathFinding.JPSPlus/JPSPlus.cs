@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
-using NF.AI.PathFinding.Common;
+using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace NF.AI.PathFinding.JPSPlus
@@ -67,7 +67,7 @@ namespace NF.AI.PathFinding.JPSPlus
                         continue;
                     }
 
-                    bool isDiagonalDir = IsDiagonal(processDir);
+                    bool isDiagonalDir = DirFlags.IsDiagonal(processDir);
                     int dirDistance = currNode.GetDistance(processDir);
                     int lengthX = RowDiff(currNode, mGoal);
                     int lengthY = ColDiff(currNode, mGoal);
@@ -95,22 +95,20 @@ namespace NF.AI.PathFinding.JPSPlus
                         // 골과 일반적 방향
                         int minDiff = Math.Min(lengthX, lengthY);
                         nextNode = GetNode(currNode, minDiff, processDir);
-                        nextG = currNode.G + (14 * minDiff); // 대각길이 비용.
+                        nextG = currNode.G + (minDiff * 14); // 대각길이 비용.
                     }
                     else if (dirDistance > 0)
                     {
                         // 점프가 가능하면 점프!
                         nextNode = GetNode(currNode, processDir);
-                        nextG = Math.Max(lengthX, lengthY);
                         if (isDiagonalDir)
                         {
-                            nextG *= 14;
+                            nextG = currNode.G + Math.Max(lengthX, lengthY) * 14;
                         }
                         else
                         {
-                            nextG *= 10;
+                            nextG = currNode.G + Math.Max(lengthX, lengthY) * 10;
                         }
-                        nextG += currNode.G;
                     }
                     else
                     {
@@ -169,6 +167,11 @@ namespace NF.AI.PathFinding.JPSPlus
             mGoal = GetOrCreatedNode(p);
             return true;
         }
+        
+        public JPSPlusNode GetJPSPlusNode(Int2 p)
+        {
+            return new JPSPlusNode(p, mBakedMap.Blocks[mBakedMap.BlockLUT[p.Y, p.X]].JumpDistances);
+        }
 
         public IReadOnlyList<JPSPlusNode> GetPaths()
         {
@@ -213,13 +216,6 @@ namespace NF.AI.PathFinding.JPSPlus
         // =======================
         // Private Methods
         // =======================
-
-        public JPSPlusNode GetJPSPlusNode(Int2 p)
-        {
-            JPSPlusBakedMap.JPSPlusBakedMapBlock bakedBlock = mBakedMap.Blocks[mBakedMap.BlockLUT[p.Y, p.X]];
-            return new JPSPlusNode(p, bakedBlock.JumpDistances);
-        }
-
         private JPSPlusNode GetOrCreatedNode(Int2 p)
         {
             if (mCreatedNodes.TryGetValue(p, out JPSPlusNode createdNode))
@@ -267,8 +263,8 @@ namespace NF.AI.PathFinding.JPSPlus
 
         bool IsGoalInExactDirection(Int2 curr, EDirFlags processDir, Int2 goal)
         {
-            int dx = goal.Y - curr.Y;
-            int dy = goal.X - curr.X;
+            int dx = goal.X - curr.X;
+            int dy = goal.Y - curr.Y;
 
             switch (processDir)
             {
@@ -295,8 +291,8 @@ namespace NF.AI.PathFinding.JPSPlus
 
         bool IsGoalInGeneralDirection(Int2 curr, EDirFlags processDir, Int2 goal)
         {
-            int dy = goal.X - curr.X;
-            int dx = goal.Y - curr.Y;
+            int dx = goal.X - curr.X;
+            int dy = goal.Y - curr.Y;
 
             switch (processDir)
             {
@@ -319,19 +315,18 @@ namespace NF.AI.PathFinding.JPSPlus
                 default:
                     return false;
             }
-
         }
 
         JPSPlusNode GetNode(JPSPlusNode node, EDirFlags dir)
         {
             Int2 pos = node.Position;
-            return GetOrCreatedNode(pos + (ExInt2.Dic[dir] * node.GetDistance(dir)));
+            return GetOrCreatedNode(pos + (DirFlags.ToPos(dir) * node.GetDistance(dir)));
         }
 
         JPSPlusNode GetNode(JPSPlusNode node, int dist, EDirFlags dir)
         {
             Int2 pos = node.Position;
-            return GetOrCreatedNode(pos + (ExInt2.Dic[dir] * dist));
+            return GetOrCreatedNode(pos + (DirFlags.ToPos(dir) * dist));
         }
 
         int ColDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
@@ -352,31 +347,11 @@ namespace NF.AI.PathFinding.JPSPlus
         // =========================================
         // Statics
         // =========================================
-        static bool IsDiagonal(EDirFlags dir)
-        {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST:
-                    return true;
-                case EDirFlags.NONE:
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST:
-                case EDirFlags.ALL:
-                default:
-                    return false;
-            }
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int H(JPSPlusNode n, JPSPlusNode goal)
         {
             // calculate estimated cost
-            return Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y) * 10;
+            return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
 
         // =======================
