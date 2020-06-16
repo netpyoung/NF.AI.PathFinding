@@ -95,7 +95,7 @@ namespace NF.AI.PathFinding.JPSPlus
                         // 골과 일반적 방향
                         int minDiff = Math.Min(lengthX, lengthY);
                         nextNode = GetNode(currNode, minDiff, processDir);
-                        nextG = currNode.G + (minDiff * 14); // 대각길이 비용.
+                        nextG = currNode.G + (Math.Max(lengthX, lengthY) * 14); // 대각길이 비용.
                     }
                     else if (dirDistance > 0)
                     {
@@ -167,7 +167,7 @@ namespace NF.AI.PathFinding.JPSPlus
             mGoal = GetOrCreatedNode(p);
             return true;
         }
-        
+
         public JPSPlusNode GetJPSPlusNode(Int2 p)
         {
             return new JPSPlusNode(p, mBakedMap.Blocks[mBakedMap.BlockLUT[p.Y, p.X]].JumpDistances);
