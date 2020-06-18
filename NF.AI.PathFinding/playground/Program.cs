@@ -1,10 +1,83 @@
 ﻿using System;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using NF.Mathematics;
+using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
 
 namespace NF.AI.PathFinding.Playground
 {
     class Program
     {
+        int NodeSize { get; } = 50;
+        Clock mClock = new Clock();
+        Board mBoard;
+        static void Main()
+        {
+            var program = new Program();
+            program.Run();
+        }
+
+        void Run()
+        {
+            uint width = 1000;
+            uint height = 1000;
+            RenderWindow window = new RenderWindow(new VideoMode(width, height), "sfml");
+            window.KeyPressed += KeyPressed;
+            window.Closed += Closed;
+            window.MouseButtonReleased += MouseButtonReleased;
+
+            mBoard = new Board((int)width, (int)height, NodeSize);
+            mBoard.SetStart(new Int2(0, 0));
+            mBoard.SetGoal(new Int2(10, 10));
+            mBoard.StepAll();
+            mBoard.Update();
+
+            while (window.IsOpen)
+            {
+                window.DispatchEvents();
+                window.Clear(Color.Blue);
+                window.Draw(mBoard);
+                window.Display();
+            }
+        }
+        Vector2i GetGridPosition(Window window, int nodeSize)
+        {
+            return Mouse.GetPosition(window) / nodeSize;
+        }
+
+        private void MouseButtonReleased(object sender, MouseButtonEventArgs e)
+        {
+            var window = (Window)sender;
+
+            if (e.Button == Mouse.Button.Left)
+            {
+                var mp = GetGridPosition(window, NodeSize);
+                mBoard.ToggleWall(new Int2(mp.X, mp.Y));
+                long before = mClock.ElapsedTime.AsMicroseconds();
+                mBoard.StepAll();
+                long afetr = mClock.ElapsedTime.AsMicroseconds();
+                Console.WriteLine(afetr - before);
+                mBoard.Update();
+            }
+        }
+
+        private void Closed(object sender, EventArgs e)
+        {
+            var window = (Window)sender;
+            window.Close();
+        }
+
+        private void KeyPressed(object sender, KeyEventArgs e)
+        {
+            var window = (Window)sender;
+            if (e.Code == Keyboard.Key.Escape)
+            {
+                window.Close();
+            }
+        }
+
         static bool[,] GetWalls(string[] strs)
         {
             var height = strs.Length;
@@ -25,7 +98,7 @@ namespace NF.AI.PathFinding.Playground
             return walls;
         }
 
-        static void Main(string[] args)
+        static void Main5(string[] args)
         {
             var walls = GetWalls(new string[] {
                  "..X...X..",
@@ -106,7 +179,7 @@ namespace NF.AI.PathFinding.Playground
             var jpso = new JPSOrthogonal.JPSOrthogonal(walls);
             jpso.SetStart(new Int2(0, 4));
             jpso.SetGoal(new Int2(7, 0));
-                
+
             bool isOk = jpso.StepAll();
             foreach (var path in jpso.GetPaths())
             {
