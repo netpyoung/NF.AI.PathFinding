@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace NF.AI.PathFinding.JPSOrthogonal
 {
-    public class JPSOrthogonal // WIP
+    public class JPSOrthogonal
     {
         public JPSOrthogonal()
         {
@@ -228,7 +228,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                 if (DirFlags.IsDiagonal(dir))
                 {
                     Int2 dp = DirFlags.ToPos(dir);
-                    if (!IsWalkable(new Int2(pos.X + dp.X, pos.Y)) &&
+                    if (!IsWalkable(new Int2(pos.X + dp.X, pos.Y)) ||
                         !IsWalkable(new Int2(pos.X, pos.Y + dp.Y)))
                     {
                         continue;
