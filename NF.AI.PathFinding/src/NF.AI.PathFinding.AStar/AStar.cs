@@ -33,6 +33,7 @@ namespace NF.AI.PathFinding.AStar
             mOpenList.Clear();
             mCloseList.Clear();
             mOpenList.Enqueue(mStart, mStart.F);
+            mGoal.Parent = null;
             return Step(int.MaxValue);
         }
 
@@ -55,7 +56,10 @@ namespace NF.AI.PathFinding.AStar
 
                 for (int i = 0b10000000; i > 0; i >>= 1)
                 {
-                    AStarNode adjacent = GetNodeOrNull(curr.Position + DirFlags.ToPos((EDirFlags)i));
+
+                    EDirFlags dir = (EDirFlags)i;
+                    Int2 dp = DirFlags.ToPos(dir);
+                    AStarNode adjacent = GetNodeOrNull(curr.Position + dp);
                     if (adjacent == null)
                     {
                         continue;
@@ -64,6 +68,15 @@ namespace NF.AI.PathFinding.AStar
                     {
                         continue;
                     }
+
+                    if (DirFlags.IsDiagonal(dir))
+                    { // for prevent corner cutting
+                        if (IsWall(curr.Position + new Int2(dp.X, 0)) || IsWall(curr.Position + new Int2(0, dp.Y)))
+                        {
+                            continue;
+                        }
+                    }
+
                     if (mCloseList.Contains(adjacent))
                     {
                         continue;
