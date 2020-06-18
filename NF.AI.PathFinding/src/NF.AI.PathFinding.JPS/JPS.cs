@@ -398,6 +398,7 @@ namespace NF.AI.PathFinding.JPS
                         return next;
                     }
                 }
+                p = next;
                 next = next.Foward(dir);
             }
         }
@@ -410,16 +411,10 @@ namespace NF.AI.PathFinding.JPS
 
             switch (dir)
             {
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST: return dir;
                 case EDirFlags.NORTHEAST: return EDirFlags.NORTHEAST | EDirFlags.NORTH | EDirFlags.EAST;
                 case EDirFlags.NORTHWEST: return EDirFlags.NORTHWEST | EDirFlags.NORTH | EDirFlags.WEST;
                 case EDirFlags.SOUTHEAST: return EDirFlags.SOUTHEAST | EDirFlags.SOUTH | EDirFlags.EAST;
                 case EDirFlags.SOUTHWEST: return EDirFlags.SOUTHWEST | EDirFlags.SOUTH | EDirFlags.WEST;
-                case EDirFlags.NONE:
-                case EDirFlags.ALL:
                 default:
                     return dir;
             }
@@ -432,11 +427,11 @@ namespace NF.AI.PathFinding.JPS
             Int2 p = from.Position - adjacent.Position;
             if (p.X == 0 || p.Y == 0)
             {
-                return from.G + 10;
+                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 10;
             }
             else
             {
-                return from.G + 14;
+                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 14;
             }
         }
 

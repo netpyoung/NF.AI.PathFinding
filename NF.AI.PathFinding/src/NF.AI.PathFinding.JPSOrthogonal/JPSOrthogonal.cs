@@ -379,6 +379,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                         return next;
                     }
                 }
+                p = next;
                 next = next.Foward(dir);
             }
         }
@@ -407,11 +408,11 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             Int2 p = from.Position - adjacent.Position;
             if (p.X == 0 || p.Y == 0)
             {
-                return from.G + 10;
+                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 10;
             }
             else
             {
-                return from.G + 14;
+                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 14;
             }
         }
 
