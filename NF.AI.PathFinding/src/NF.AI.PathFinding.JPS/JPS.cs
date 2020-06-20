@@ -182,6 +182,14 @@ namespace NF.AI.PathFinding.JPS
         public int Width { get; private set; }
         public int Height { get; private set; }
 
+        public bool IsWalkable(Int2 p)
+        {
+            if (!IsInBoundary(p))
+            {
+                return false;
+            }
+            return !mWalls[p.Y, p.X];
+        }
 
         // =======================
         // Private Methods
@@ -195,15 +203,6 @@ namespace NF.AI.PathFinding.JPS
             AStarNode newNode = new AStarNode(p);
             mCreatedNodes.Add(p, newNode);
             return newNode;
-        }
-
-        bool IsWalkable(Int2 p)
-        {
-            if (!IsInBoundary(p))
-            {
-                return false;
-            }
-            return !mWalls[p.Y, p.X];
         }
 
         bool IsInBoundary(Int2 p)

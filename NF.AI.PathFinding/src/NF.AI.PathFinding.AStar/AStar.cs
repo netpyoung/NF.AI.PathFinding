@@ -173,6 +173,15 @@ namespace NF.AI.PathFinding.AStar
             return mWalls;
         }
 
+        public bool IsWalkable(Int2 p)
+        {
+            if (!IsInBoundary(p))
+            {
+                return false;
+            }
+            return !IsWall(p);
+        }
+
         // ============================
         // Private Methods
         // ============================

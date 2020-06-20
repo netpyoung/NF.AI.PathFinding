@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using NF.AI.PathFinding.Common;
 using NF.Mathematics;
 using SFML.Graphics;
 using SFML.System;
@@ -8,15 +10,25 @@ namespace NF.AI.PathFinding.Playground
 {
     class Board : Drawable
     {
-        JPS.JPS jps;
-        //JPSOrthogonal.JPSOrthogonal jps;
+        DrawableNode[,] mDrawbleNodes;
+        BresenHamPathSmoother mPathSmoother = new BresenHamPathSmoother();
+        //AStar.AStar mPathFinder;
+        JPS.JPS mPathFinder;
+        //JPSOrthogonal.JPSOrthogonal mPathFinder;
+        List<Line> mGridLines = new List<Line>();
+        List<Line> mPathLines = new List<Line>();
+        Vector2f mHalfNodeP;
+
         public Board(int screenWidth, int screenHeight, int nodeSize)
         {
-            jps = new JPS.JPS(screenWidth / nodeSize, screenHeight / nodeSize);
-            //jps = new JPSOrthogonal.JPSOrthogonal(screenWidth / nodeSize, screenHeight / nodeSize);
+            //mPathFinder= new AStar.AStar(screenWidth / nodeSize, screenHeight / nodeSize);
+            mPathFinder = new JPS.JPS(screenWidth / nodeSize, screenHeight / nodeSize);
+            //mPathFinder = new JPSOrthogonal.JPSOrthogonal(screenWidth / nodeSize, screenHeight / nodeSize);
+
             Width = screenWidth / nodeSize;
             Height = screenHeight / nodeSize;
             NodeSize = nodeSize;
+            mHalfNodeP = new Vector2f(NodeSize / 2, NodeSize / 2);
 
             for (int x = 0; x <= screenWidth; x += nodeSize)
             {
@@ -28,17 +40,17 @@ namespace NF.AI.PathFinding.Playground
                 mGridLines.Add(new Line(new Vector2f(0, y), new Vector2f(screenWidth, y)));
             }
 
-            nodes = new DrawableNode[Height, Width];
+            mDrawbleNodes = new DrawableNode[Height, Width];
             for (int y = 0; y < Height; ++y)
             {
                 for (int x = 0; x < Width; ++x)
                 {
-                    nodes[y, x] = new DrawableNode(nodeSize);
-                    nodes[y, x].Position = new Vector2f(x * nodeSize, y * nodeSize);
+                    mDrawbleNodes[y, x] = new DrawableNode(nodeSize);
+                    mDrawbleNodes[y, x].Position = new Vector2f(x * nodeSize, y * nodeSize);
                 }
             }
         }
-        DrawableNode[,] nodes;
+
         public void Draw(RenderTarget target, RenderStates states)
         {
             foreach (var line in mGridLines)
@@ -49,7 +61,7 @@ namespace NF.AI.PathFinding.Playground
             {
                 for (int x = 0; x < Width; ++x)
                 {
-                    target.Draw(nodes[y, x]);
+                    target.Draw(mDrawbleNodes[y, x]);
                 }
             }
             foreach (var line in mPathLines)
@@ -63,73 +75,64 @@ namespace NF.AI.PathFinding.Playground
 
         public int NodeSize { get; }
 
-        List<Line> mGridLines = new List<Line>();
-
-        internal void ToggleWall(Int2 mp)
+        public void ToggleWall(Int2 mp)
         {
-            jps.ToggleWall(mp);
+            mPathFinder.ToggleWall(mp);
         }
 
         public void SetStart(Int2 p)
         {
-            jps.SetStart(p);
+            mPathFinder.SetStart(p);
         }
 
         public void SetGoal(Int2 p)
         {
-            jps.SetGoal(p);
+            mPathFinder.SetGoal(p);
         }
 
         internal void StepAll()
         {
-            jps.StepAll();
+            mPathFinder.StepAll();
         }
 
         internal void Update()
         {
-            foreach (var path in jps.GetPaths())
-            {
-                Console.WriteLine(path.Position);
-            }
-
-            var walls = jps.GetWalls();
+            var walls = mPathFinder.GetWalls();
             for (int y = 0; y < Height; ++y)
             {
                 for (int x = 0; x < Width; ++x)
                 {
                     if (walls[y, x])
                     {
-                        nodes[y, x].SetFillColor(Color.Blue);
+                        mDrawbleNodes[y, x].SetFillColor(Color.Blue);
                     }
                     else
                     {
-                        nodes[y, x].SetFillColor(Color.White);
+                        mDrawbleNodes[y, x].SetFillColor(Color.White);
                     }
                 }
             }
 
-
             mPathLines.Clear();
             DrawableNode prevNode = null;
-            var halfNodeP = new Vector2f(NodeSize / 2, NodeSize / 2);
-            foreach (var path in jps.GetPaths())
+            var pp1 = mPathFinder.GetPaths().Select(x => x.Position).ToList();
+            var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
+            foreach (var p in pp1)
             {
-                var pathNode = nodes[path.Position.Y, path.Position.X];
+                var pathNode = mDrawbleNodes[p.Y, p.X];
                 pathNode.SetFillColor(Color.Cyan);
                 if (prevNode != null)
                 {
-                    var line = new Line(pathNode.Position + halfNodeP, prevNode.Position + halfNodeP);
+                    var line = new Line(pathNode.Position + mHalfNodeP, prevNode.Position + mHalfNodeP);
                     line.SetColor(Color.Red);
                     mPathLines.Add(line);
                 }
                 prevNode = pathNode;
             }
-            var sp = jps.GetStart().Position;
-            nodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
-            var gp = jps.GetGoal().Position;
-            nodes[gp.Y, gp.X].SetFillColor(Color.Green);
-
+            var sp = mPathFinder.GetStart().Position;
+            mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
+            var gp = mPathFinder.GetGoal().Position;
+            mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
         }
-        List<Line> mPathLines = new List<Line>();
     }
 }
