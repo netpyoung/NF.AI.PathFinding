@@ -102,7 +102,7 @@ namespace NF.AI.PathFinding.AStar
             return false;
         }
 
-        public bool SetStart(Int2 pos)
+        public bool SetStart(in Int2 pos)
         {
             if (!IsInBoundary(pos))
             {
@@ -113,7 +113,7 @@ namespace NF.AI.PathFinding.AStar
             return true;
         }
 
-        public bool SetGoal(Int2 pos)
+        public bool SetGoal(in Int2 pos)
         {
             if (!IsInBoundary(pos))
             {
@@ -124,7 +124,7 @@ namespace NF.AI.PathFinding.AStar
             return true;
         }
 
-        public bool ToggleWall(Int2 pos)
+        public bool ToggleWall(in Int2 pos)
         {
             if (!IsInBoundary(pos))
             {
@@ -173,7 +173,7 @@ namespace NF.AI.PathFinding.AStar
             return mWalls;
         }
 
-        public bool IsWalkable(Int2 p)
+        public bool IsWalkable(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -185,14 +185,14 @@ namespace NF.AI.PathFinding.AStar
         // ============================
         // Private Methods
         // ============================
-        bool IsInBoundary(Int2 pos) => IsInBoundary(pos.X, pos.Y);
+        bool IsInBoundary(in Int2 pos) => IsInBoundary(pos.X, pos.Y);
 
         bool IsInBoundary(int x, int y)
         {
             return (0 <= x && x < this.Width) && (0 <= y && y < this.Height);
         }
 
-        AStarNode GetNodeOrNull(Int2 pos)
+        AStarNode GetNodeOrNull(in Int2 pos)
         {
             int x = pos.X;
             int y = pos.Y;
@@ -209,7 +209,7 @@ namespace NF.AI.PathFinding.AStar
             mNodes[y, x] = node;
             return node;
         }
-        bool IsWall(Int2 pos)
+        bool IsWall(in Int2 pos)
         {
             return mWalls[pos.Y, pos.X];
         }

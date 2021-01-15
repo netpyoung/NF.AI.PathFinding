@@ -10,7 +10,7 @@ namespace NF.AI.PathFinding.JPSPlus
         public int[] JumpDistances = new int[8];
         public Int2 Pos;
 
-        public JPSPlusMapBakerBlock(Int2 pos)
+        public JPSPlusMapBakerBlock(in Int2 pos)
         {
             Pos = pos;
         }

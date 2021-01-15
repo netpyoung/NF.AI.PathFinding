@@ -168,7 +168,7 @@ namespace NF.AI.PathFinding.JPSPlus
             return true;
         }
 
-        public JPSPlusNode GetJPSPlusNode(Int2 p)
+        public JPSPlusNode GetJPSPlusNode(in Int2 p)
         {
             return new JPSPlusNode(p, mBakedMap.Blocks[mBakedMap.BlockLUT[p.Y, p.X]].JumpDistances);
         }

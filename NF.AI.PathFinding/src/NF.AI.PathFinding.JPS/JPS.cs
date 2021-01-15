@@ -45,6 +45,8 @@ namespace NF.AI.PathFinding.JPS
         public bool Step(int stepCount)
         {
             int step = stepCount;
+            Int2 jumpPos = new Int2(0, 0);
+
             while (true)
             {
                 if (step <= 0)
@@ -76,13 +78,11 @@ namespace NF.AI.PathFinding.JPS
                         continue;
                     }
 
-                    Int2? jumpResult = JumpOrNull(currPos, succesorDir, goalPos);
-                    if (jumpResult == null)
+                    if (!TryJump(currPos, succesorDir, goalPos, ref jumpPos))
                     {
                         continue;
                     }
 
-                    Int2 jumpPos = jumpResult.Value;
                     AStarNode jumpNode = GetOrCreateNode(jumpPos);
                     if (mCloseList.Contains(jumpNode))
                     {
@@ -109,7 +109,7 @@ namespace NF.AI.PathFinding.JPS
                 step--;
             }
         }
-        public void SetStart(Int2 p)
+        public void SetStart(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -118,7 +118,7 @@ namespace NF.AI.PathFinding.JPS
             mStart = GetOrCreateNode(p);
         }
 
-        public void SetGoal(Int2 p)
+        public void SetGoal(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -127,7 +127,7 @@ namespace NF.AI.PathFinding.JPS
             mGoal = GetOrCreateNode(p);
         }
 
-        public void ToggleWall(Int2 p)
+        public void ToggleWall(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -182,7 +182,7 @@ namespace NF.AI.PathFinding.JPS
         public int Width { get; private set; }
         public int Height { get; private set; }
 
-        public bool IsWalkable(Int2 p)
+        public bool IsWalkable(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -194,7 +194,7 @@ namespace NF.AI.PathFinding.JPS
         // =======================
         // Private Methods
         // =======================
-        private AStarNode GetOrCreateNode(Int2 p)
+        private AStarNode GetOrCreateNode(in Int2 p)
         {
             if (mCreatedNodes.TryGetValue(p, out AStarNode createdNode))
             {
@@ -205,12 +205,13 @@ namespace NF.AI.PathFinding.JPS
             return newNode;
         }
 
-        bool IsInBoundary(Int2 p)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool IsInBoundary(in Int2 p)
         {
             return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
         }
 
-        internal EDirFlags NeighbourDir(Int2 pos)
+        internal EDirFlags NeighbourDir(in Int2 pos)
         {
             EDirFlags ret = EDirFlags.NONE;
             for (int i = 0b10000000; i > 0; i >>= 1)
@@ -235,7 +236,7 @@ namespace NF.AI.PathFinding.JPS
             return ret;
         }
 
-        internal EDirFlags ForcedNeighbourDir(Int2 n, EDirFlags dir)
+        internal EDirFlags ForcedNeighbourDir(in Int2 n, EDirFlags dir)
         {
             EDirFlags ret = EDirFlags.NONE;
             switch (dir)
@@ -355,50 +356,62 @@ namespace NF.AI.PathFinding.JPS
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal EDirFlags SuccesorsDir(Int2 pos, EDirFlags dir)
+        internal EDirFlags SuccesorsDir(in Int2 pos, EDirFlags dir)
         {
             return NeighbourDir(pos) & (NaturalNeighbours(dir) | ForcedNeighbourDir(pos, dir));
         }
 
-        internal Int2? JumpOrNull(Int2 p, EDirFlags dir, Int2 goal)
+        internal bool TryJump(in Int2 p, EDirFlags dir, in Int2 goal, ref Int2 outJumped)
         {
-            Int2 next = p.Foward(dir);
+            Int2 curr = p;
+            Int2 next = curr.Foward(dir);
+
             while (true)
             {
                 if (!IsWalkable(next))
                 {
-                    return null;
+                    return false;
                 }
-                if ((dir & NeighbourDir(p)) == EDirFlags.NONE)
+
+                //if ((dir & NeighbourDir(curr)) == EDirFlags.NONE)
+                //{
+                //    return false;
+                //}
+                if (dir == EDirFlags.NONE)
                 {
-                    return null;
+                    return false;
                 }
+
                 if (next == goal)
                 {
-                    return next;
+                    outJumped = next;
+                    return true;
                 }
 
                 if ((ForcedNeighbourDir(next, dir) & NeighbourDir(next)) != EDirFlags.NONE)
                 {
-                    return next;
+                    outJumped = next;
+                    return true;
                 }
 
                 if (DirFlags.IsDiagonal(dir))
                 {
                     // TODO(pyoung): TOC 가능하게 수정 할 수 있나?
                     // d1: EAST  | WEST
-                    if (JumpOrNull(next, DirFlags.DiagonalToEastWest(dir), goal).HasValue)
+                    if (TryJump(next, DirFlags.DiagonalToEastWest(dir), goal, ref outJumped))
                     {
-                        return next;
+                        outJumped = next;
+                        return true;
                     }
                     // d2: NORTH | SOUTH
-                    if (JumpOrNull(next, DirFlags.DiagonalToNorthSouth(dir), goal).HasValue)
+                    if (TryJump(next, DirFlags.DiagonalToNorthSouth(dir), goal, ref outJumped))
                     {
-                        return next;
+                        outJumped = next;
+                        return true;
                     }
                 }
-                p = next;
-                next = next.Foward(dir);
+                curr = next;
+                next = curr.Foward(dir);
             }
         }
 

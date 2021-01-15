@@ -5,7 +5,7 @@ namespace NF.AI.PathFinding.JPSPlus
 {
     public class JPSPlusNode
     {
-        public JPSPlusNode(Int2 p, int[] jumpDistances)
+        public JPSPlusNode(in Int2 p, int[] jumpDistances)
         {
             this.G = 0;
             this.H = 0;

@@ -1,5 +1,4 @@
 ﻿using NF.Mathematics;
-using System;
 using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.Common
@@ -8,7 +7,9 @@ namespace NF.AI.PathFinding.Common
     {
         BresenHam mBresenHam = new BresenHam();
 
-        public List<Int2> SmoothPath(List<Int2> path, Func<Int2, bool> fnIsWalkable)
+        public delegate bool DelIsWalkable(in Int2 p);
+
+        public List<Int2> SmoothPath(List<Int2> path, DelIsWalkable fnIsWalkable)
         {
             var ret = new List<Int2>();
             if (path.Count < 2)

@@ -12,7 +12,7 @@ namespace NF.AI.PathFinding.JPSPlus
 
         public class JPSPlusBakedMapBlock
         {
-            public JPSPlusBakedMapBlock(Int2 pos, int[] jumpDistances)
+            public JPSPlusBakedMapBlock(in Int2 pos, int[] jumpDistances)
             {
                 JumpDistances = jumpDistances;
                 Pos = pos;

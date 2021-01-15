@@ -1,5 +1,6 @@
 ﻿using NF.Mathematics;
 using System;
+using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.Common
 {
@@ -23,30 +24,33 @@ namespace NF.AI.PathFinding.Common
 
         public static bool IsStraight(EDirFlags dir)
         {
-            switch (dir)
-            {
-                case EDirFlags.NORTH:
-                case EDirFlags.SOUTH:
-                case EDirFlags.EAST:
-                case EDirFlags.WEST:
-                    return true;
-                default:
-                    return false;
-            }
+            return (dir & (EDirFlags.NORTH | EDirFlags.SOUTH | EDirFlags.EAST | EDirFlags.WEST)) != EDirFlags.NONE;
+
+            //switch (dir)
+            //{
+            //    case EDirFlags.NORTH:
+            //    case EDirFlags.SOUTH:
+            //    case EDirFlags.EAST:
+            //    case EDirFlags.WEST:
+            //        return true;
+            //    default:
+            //        return false;
+            //}
         }
 
         public static bool IsDiagonal(EDirFlags dir)
         {
-            switch (dir)
-            {
-                case EDirFlags.NORTHEAST:
-                case EDirFlags.NORTHWEST:
-                case EDirFlags.SOUTHEAST:
-                case EDirFlags.SOUTHWEST:
-                    return true;
-                default:
-                    return false;
-            }
+            return (dir & (EDirFlags.NORTHEAST | EDirFlags.NORTHWEST | EDirFlags.SOUTHEAST | EDirFlags.SOUTHWEST)) != EDirFlags.NONE;
+            //switch (dir)
+            //{
+            //    case EDirFlags.NORTHEAST:
+            //    case EDirFlags.NORTHWEST:
+            //    case EDirFlags.SOUTHEAST:
+            //    case EDirFlags.SOUTHWEST:
+            //        return true;
+            //    default:
+            //        return false;
+            //}
         }
 
         public static EDirFlags DiagonalToEastWest(EDirFlags dir)
@@ -75,21 +79,21 @@ namespace NF.AI.PathFinding.Common
             }
         }
 
+        static Dictionary<EDirFlags, Int2> DirToPos = new Dictionary<EDirFlags, Int2>()
+        {
+            { EDirFlags.NORTH,new Int2(0, -1) },
+            { EDirFlags.SOUTH,new Int2(0, 1) },
+            { EDirFlags.EAST,new Int2(1, 0) },
+            { EDirFlags.WEST,new Int2(-1, 0) },
+            { EDirFlags.NORTHEAST,new Int2(1, -1) },
+            { EDirFlags.NORTHWEST,new Int2(-1, -1) },
+            { EDirFlags.SOUTHEAST,new Int2(1, 1) },
+            { EDirFlags.SOUTHWEST,new Int2(-1, 1) },
+        };
+
         public static Int2 ToPos(EDirFlags dir)
         {
-            switch (dir)
-            {
-                case EDirFlags.NORTH: return new Int2(0, -1);
-                case EDirFlags.SOUTH: return new Int2(0, 1);
-                case EDirFlags.EAST: return new Int2(1, 0);
-                case EDirFlags.WEST: return new Int2(-1, 0);
-                case EDirFlags.NORTHEAST: return new Int2(1, -1);
-                case EDirFlags.NORTHWEST: return new Int2(-1, -1);
-                case EDirFlags.SOUTHEAST: return new Int2(1, 1);
-                case EDirFlags.SOUTHWEST: return new Int2(-1, 1);
-                default:
-                    throw new ArgumentException($"invalid dir: {dir}");
-            }
+            return DirToPos[dir];
         }
     }
 }

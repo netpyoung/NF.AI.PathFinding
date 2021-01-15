@@ -4,7 +4,7 @@ namespace NF.AI.PathFinding.Common
 {
     public class AStarNode
     {
-        public AStarNode(Int2 p)
+        public AStarNode(in Int2 p)
         {
             this.G = 0;
             this.H = 0;

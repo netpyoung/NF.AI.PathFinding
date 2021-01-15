@@ -479,7 +479,7 @@ namespace NF.AI.PathFinding.JPSPlus
             } // SOUTH & EAST
         }
 
-        bool IsWalkable(Int2 p)
+        bool IsWalkable(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -488,12 +488,12 @@ namespace NF.AI.PathFinding.JPSPlus
             return BlockLUT[p.Y, p.X] >= 0;
         }
 
-        bool IsInBoundary(Int2 p)
+        bool IsInBoundary(in Int2 p)
         {
             return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
         }
 
-        JPSPlusMapBakerBlock GetBlockOrNull(Int2 p)
+        JPSPlusMapBakerBlock GetBlockOrNull(in Int2 p)
         {
             if (!IsInBoundary(p))
             {

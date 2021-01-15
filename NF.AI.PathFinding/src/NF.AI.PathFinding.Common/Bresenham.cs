@@ -15,7 +15,7 @@ namespace NF.AI.PathFinding.Common
         Int2 mCurr;
         Int2 mDest;
 
-        public void Init(Int2 src, Int2 dst)
+        public void Init(in Int2 src, in Int2 dst)
         {
             mDx = Math.Abs(dst.X - src.X);
             mDy = -Math.Abs(dst.Y - src.Y);

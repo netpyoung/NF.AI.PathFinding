@@ -31,8 +31,9 @@ namespace NF.AI.PathFinding.JPS.Test
             Int2 g = new Int2(2, 3);
             EDirFlags dir = EDirFlags.NORTHEAST;
 
-            Int2? result = jps.JumpOrNull(p, dir, g);
-            Assert.Equal(new Int2(2, 1), result.Value);
+            Int2 result = new Int2(0, 0);
+            Assert.True(jps.TryJump(p, dir, g, ref result));
+            Assert.Equal(new Int2(2, 1), result);
         }
 
         [Fact]

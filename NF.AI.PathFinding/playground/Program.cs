@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using NF.Mathematics;
@@ -13,6 +14,7 @@ namespace NF.AI.PathFinding.Playground
         int NodeSize { get; } = 50;
         Clock mClock = new Clock();
         Board mBoard;
+
         static void Main()
         {
             var program = new Program();
@@ -55,10 +57,12 @@ namespace NF.AI.PathFinding.Playground
             {
                 var mp = GetGridPosition(window, NodeSize);
                 mBoard.ToggleWall(new Int2(mp.X, mp.Y));
-                long before = mClock.ElapsedTime.AsMicroseconds();
+
+                var sw = Stopwatch.StartNew();
                 mBoard.StepAll();
-                long afetr = mClock.ElapsedTime.AsMicroseconds();
-                Console.WriteLine(afetr - before);
+                sw.Stop();
+                Console.WriteLine($"Step Ticks : {sw.ElapsedTicks}");
+                
                 mBoard.Update();
             }
         }
@@ -98,7 +102,7 @@ namespace NF.AI.PathFinding.Playground
             return walls;
         }
 
-        static void Main5(string[] args)
+        static void Main5()
         {
             var walls = GetWalls(new string[] {
                  "..X...X..",
@@ -116,7 +120,11 @@ namespace NF.AI.PathFinding.Playground
             jpsp.SetStart(new Int2(0, 4));
             jpsp.SetGoal(new Int2(7, 0));
 
+            Stopwatch sw = Stopwatch.StartNew();
             bool isOk = jpsp.StepAll();
+            sw.Stop();
+            Console.WriteLine($"JPSPlus Take MS: {sw.ElapsedMilliseconds}");
+
             foreach (var path in jpsp.GetPaths())
             {
                 Console.WriteLine(path.Position);
@@ -125,7 +133,7 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main2(string[] args)
+        static void Main2()
         {
             var walls = GetWalls(new string[] {
                  "..X...X..",
@@ -137,7 +145,12 @@ namespace NF.AI.PathFinding.Playground
             var jps = new JPS.JPS(walls);
             jps.SetStart(new Int2(0, 4));
             jps.SetGoal(new Int2(7, 0));
+
+            Stopwatch sw = Stopwatch.StartNew();
             bool isOk = jps.StepAll();
+            sw.Stop();
+            Console.WriteLine($"JPS Take MS: {sw.ElapsedMilliseconds}");
+
             foreach (var path in jps.GetPaths())
             {
                 Console.WriteLine(path.Position);
@@ -146,7 +159,7 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main3(string[] args)
+        static void Main3()
         {
             var walls = GetWalls(new string[] {
                  "..X...X..",
@@ -158,7 +171,12 @@ namespace NF.AI.PathFinding.Playground
             var astar = new AStar.AStar(walls);
             astar.SetStart(new Int2(0, 4));
             astar.SetGoal(new Int2(7, 0));
+
+            Stopwatch sw = Stopwatch.StartNew();
             bool isOk = astar.StepAll();
+            sw.Stop();
+            Console.WriteLine($"AStar Take MS: {sw.ElapsedMilliseconds}");
+
             foreach (var path in astar.GetPaths())
             {
                 Console.WriteLine(path.Position);
@@ -167,7 +185,7 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main4(string[] args)
+        static void Main4()
         {
             var walls = GetWalls(new string[] {
                  "..X...X..",
@@ -180,7 +198,11 @@ namespace NF.AI.PathFinding.Playground
             jpso.SetStart(new Int2(0, 4));
             jpso.SetGoal(new Int2(7, 0));
 
+            Stopwatch sw = Stopwatch.StartNew();
             bool isOk = jpso.StepAll();
+            sw.Stop();
+            Console.WriteLine($"JPSOrthogonal Take MS: {sw.ElapsedMilliseconds}");
+
             foreach (var path in jpso.GetPaths())
             {
                 Console.WriteLine(path.Position);

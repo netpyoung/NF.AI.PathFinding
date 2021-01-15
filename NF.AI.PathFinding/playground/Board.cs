@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using NF.AI.PathFinding.Common;
+﻿using NF.AI.PathFinding.Common;
 using NF.Mathematics;
 using SFML.Graphics;
 using SFML.System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NF.AI.PathFinding.Playground
 {
@@ -21,7 +20,7 @@ namespace NF.AI.PathFinding.Playground
 
         public Board(int screenWidth, int screenHeight, int nodeSize)
         {
-            //mPathFinder= new AStar.AStar(screenWidth / nodeSize, screenHeight / nodeSize);
+            //mPathFinder = new AStar.AStar(screenWidth / nodeSize, screenHeight / nodeSize);
             mPathFinder = new JPS.JPS(screenWidth / nodeSize, screenHeight / nodeSize);
             //mPathFinder = new JPSOrthogonal.JPSOrthogonal(screenWidth / nodeSize, screenHeight / nodeSize);
 
@@ -75,17 +74,17 @@ namespace NF.AI.PathFinding.Playground
 
         public int NodeSize { get; }
 
-        public void ToggleWall(Int2 mp)
+        public void ToggleWall(in Int2 mp)
         {
             mPathFinder.ToggleWall(mp);
         }
 
-        public void SetStart(Int2 p)
+        public void SetStart(in Int2 p)
         {
             mPathFinder.SetStart(p);
         }
 
-        public void SetGoal(Int2 p)
+        public void SetGoal(in Int2 p)
         {
             mPathFinder.SetGoal(p);
         }
