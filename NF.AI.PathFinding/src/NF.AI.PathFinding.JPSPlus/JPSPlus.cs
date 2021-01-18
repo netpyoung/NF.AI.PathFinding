@@ -137,7 +137,7 @@ namespace NF.AI.PathFinding.JPSPlus
             }
         }
 
-        public bool SetStart(Int2 p)
+        public bool SetStart(in Int2 p)
         {
             if (mBakedMap == null)
             {
@@ -153,7 +153,7 @@ namespace NF.AI.PathFinding.JPSPlus
             return true;
         }
 
-        public bool SetGoal(Int2 p)
+        public bool SetGoal(in Int2 p)
         {
             if (mBakedMap == null)
             {
@@ -216,7 +216,7 @@ namespace NF.AI.PathFinding.JPSPlus
         // =======================
         // Private Methods
         // =======================
-        private JPSPlusNode GetOrCreatedNode(Int2 p)
+        private JPSPlusNode GetOrCreatedNode(in Int2 p)
         {
             if (mCreatedNodes.TryGetValue(p, out JPSPlusNode createdNode))
             {
@@ -227,7 +227,7 @@ namespace NF.AI.PathFinding.JPSPlus
             return newNode;
         }
 
-        bool IsInBoundary(Int2 p)
+        bool IsInBoundary(in Int2 p)
         {
             return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
         }
@@ -261,7 +261,7 @@ namespace NF.AI.PathFinding.JPSPlus
             }
         }
 
-        bool IsGoalInExactDirection(Int2 curr, EDirFlags processDir, Int2 goal)
+        bool IsGoalInExactDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
         {
             int dx = goal.X - curr.X;
             int dy = goal.Y - curr.Y;
@@ -289,7 +289,7 @@ namespace NF.AI.PathFinding.JPSPlus
             }
         }
 
-        bool IsGoalInGeneralDirection(Int2 curr, EDirFlags processDir, Int2 goal)
+        bool IsGoalInGeneralDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
         {
             int dx = goal.X - curr.X;
             int dy = goal.Y - curr.Y;
@@ -319,28 +319,22 @@ namespace NF.AI.PathFinding.JPSPlus
 
         JPSPlusNode GetNode(JPSPlusNode node, EDirFlags dir)
         {
-            Int2 pos = node.Position;
-            return GetOrCreatedNode(pos + (DirFlags.ToPos(dir) * node.GetDistance(dir)));
+            return GetOrCreatedNode(node.Position + (DirFlags.ToPos(dir) * node.GetDistance(dir)));
         }
 
         JPSPlusNode GetNode(JPSPlusNode node, int dist, EDirFlags dir)
         {
-            Int2 pos = node.Position;
-            return GetOrCreatedNode(pos + (DirFlags.ToPos(dir) * dist));
+            return GetOrCreatedNode(node.Position + (DirFlags.ToPos(dir) * dist));
         }
 
         int ColDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
         {
-            Int2 currP = currNode.Position;
-            Int2 goalP = goalNode.Position;
-            return Math.Abs(goalP.X - currP.X);
+            return Math.Abs(goalNode.Position.X - currNode.Position.X);
         }
 
         int RowDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
         {
-            Int2 currP = currNode.Position;
-            Int2 goalP = goalNode.Position;
-            return Math.Abs(goalP.Y - currP.Y);
+            return Math.Abs(goalNode.Position.Y - currNode.Position.Y);
         }
         #endregion plus
 

@@ -12,7 +12,6 @@ namespace NF.AI.PathFinding.Playground
     class Program
     {
         int NodeSize { get; } = 50;
-        Clock mClock = new Clock();
         Board mBoard;
 
         static void Main()

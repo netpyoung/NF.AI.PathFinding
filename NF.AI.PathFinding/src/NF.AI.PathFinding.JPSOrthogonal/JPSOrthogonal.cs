@@ -45,6 +45,8 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         public bool Step(int stepCount)
         {
             int step = stepCount;
+            Int2 jumpPos = new Int2(0, 0);
+
             while (true)
             {
                 if (step <= 0)
@@ -76,13 +78,11 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                         continue;
                     }
 
-                    Int2? jumpResult = JumpOrNull(currPos, succesorDir, goalPos);
-                    if (jumpResult == null)
+                    if (!TryJump(currPos, succesorDir, goalPos, ref jumpPos))
                     {
                         continue;
                     }
 
-                    Int2 jumpPos = jumpResult.Value;
                     AStarNode jumpNode = GetOrCreateNode(jumpPos);
                     if (mCloseList.Contains(jumpNode))
                     {
@@ -109,7 +109,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                 step--;
             }
         }
-        public bool SetStart(Int2 p)
+        public bool SetStart(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -119,7 +119,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return true;
         }
 
-        public bool SetGoal(Int2 p)
+        public bool SetGoal(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -129,7 +129,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return true;
         }
 
-        public bool ToggleWall(Int2 p)
+        public bool ToggleWall(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -189,7 +189,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =======================
         // Private Methods
         // =======================
-        private AStarNode GetOrCreateNode(Int2 p)
+        private AStarNode GetOrCreateNode(in Int2 p)
         {
             if (mCreateNodes.TryGetValue(p, out AStarNode node))
             {
@@ -200,7 +200,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return newNode;
         }
 
-        bool IsWalkable(Int2 p)
+        public bool IsWalkable(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -209,12 +209,12 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return !mWalls[p.Y, p.X];
         }
 
-        bool IsInBoundary(Int2 p)
+        bool IsInBoundary(in Int2 p)
         {
             return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
         }
 
-        internal EDirFlags NeighbourDir(Int2 pos)
+        internal EDirFlags NeighbourDir(in Int2 pos)
         {
             EDirFlags ret = EDirFlags.NONE;
             for (int i = 0b10000000; i > 0; i >>= 1)
@@ -239,7 +239,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return ret;
         }
 
-        internal EDirFlags OrthogonalNeighbourDir(Int2 pos)
+        internal EDirFlags OrthogonalNeighbourDir(in Int2 pos)
         {
             EDirFlags ret = EDirFlags.NONE;
             for (int i = 0b00001000; i > 0; i >>= 1)
@@ -254,8 +254,13 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return ret;
         }
 
-        internal EDirFlags OrthogonalForcedNeighbourDir(Int2 n, EDirFlags dir)
+        internal EDirFlags OrthogonalForcedNeighbourDir(in Int2 n, EDirFlags dir)
         {
+            if (dir == EDirFlags.ALL)
+            {
+                return EDirFlags.ALL;
+            }
+
             EDirFlags ret = EDirFlags.NONE;
 
             Int2 next = new Int2(0, 0);
@@ -337,49 +342,55 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal EDirFlags SuccesorsDir(Int2 pos, EDirFlags dir)
+        internal EDirFlags SuccesorsDir(in Int2 pos, EDirFlags dir)
         {
             return NeighbourDir(pos) & (NaturalNeighbours(dir) | OrthogonalForcedNeighbourDir(pos, dir));
         }
 
-        internal Int2? JumpOrNull(Int2 p, EDirFlags dir, Int2 goal)
+        internal bool TryJump(in Int2 p, EDirFlags dir, in Int2 goal, ref Int2 outJumped)
         {
-            Int2 next = p.Foward(dir);
+            Int2 curr = p;
+            Int2 next = curr.Foward(dir);
+
             while (true)
             {
                 if (!IsWalkable(next))
                 {
-                    return null;
+                    return false;
                 }
-                if ((dir & NeighbourDir(p)) == EDirFlags.NONE)
+                if ((dir & NeighbourDir(curr)) == EDirFlags.NONE)
                 {
-                    return null;
+                    return false;
                 }
                 if (next == goal)
                 {
-                    return next;
+                    outJumped = next;
+                    return true;
                 }
 
                 if ((OrthogonalForcedNeighbourDir(next, dir) & OrthogonalNeighbourDir(next)) != EDirFlags.NONE)
                 {
-                    return next;
+                    outJumped = next;
+                    return true;
                 }
 
                 if (DirFlags.IsDiagonal(dir))
                 {
                     // TODO(pyoung): TOC 가능하게 수정 할 수 있나?
                     // d1: EAST  | WEST
-                    if (JumpOrNull(next, DirFlags.DiagonalToEastWest(dir), goal).HasValue)
+                    if (TryJump(next, DirFlags.DiagonalToEastWest(dir), goal, ref outJumped))
                     {
-                        return next;
+                        outJumped = next;
+                        return true;
                     }
                     // d2: NORTH | SOUTH
-                    if (JumpOrNull(next, DirFlags.DiagonalToNorthSouth(dir), goal).HasValue)
+                    if (TryJump(next, DirFlags.DiagonalToNorthSouth(dir), goal, ref outJumped))
                     {
-                        return next;
+                        outJumped = next;
+                        return true;
                     }
                 }
-                p = next;
+                curr = next;
                 next = next.Foward(dir);
             }
         }

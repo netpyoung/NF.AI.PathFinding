@@ -373,11 +373,7 @@ namespace NF.AI.PathFinding.JPS
                     return false;
                 }
 
-                //if ((dir & NeighbourDir(curr)) == EDirFlags.NONE)
-                //{
-                //    return false;
-                //}
-                if (dir == EDirFlags.NONE)
+                if ((dir & NeighbourDir(curr)) == EDirFlags.NONE)
                 {
                     return false;
                 }
