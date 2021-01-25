@@ -74,6 +74,9 @@ namespace NF.AI.PathFinding.Playground
 
         public int NodeSize { get; }
 
+        public Int2 StartP => mPathFinder.GetStart().Position;
+        public Int2 GoalP => mPathFinder.GetGoal().Position;
+
         public void ToggleWall(in Int2 mp)
         {
             mPathFinder.ToggleWall(mp);
@@ -94,6 +97,21 @@ namespace NF.AI.PathFinding.Playground
             mPathFinder.StepAll();
         }
 
+        public bool IsWall(in Int2 p)
+        {
+            return !mPathFinder.IsWalkable(p);
+        }
+
+        public void CreateWall(in Int2 p)
+        {
+            mPathFinder.SetWall(p, true);
+        }
+
+        public void RemoveWall(in Int2 p)
+        {
+            mPathFinder.SetWall(p, false);
+        }
+
         internal void Update()
         {
             var walls = mPathFinder.GetWalls();
@@ -112,22 +130,49 @@ namespace NF.AI.PathFinding.Playground
                 }
             }
 
-            mPathLines.Clear();
-            DrawableNode prevNode = null;
-            var pp1 = mPathFinder.GetPaths().Select(x => x.Position).ToList();
-            var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
-            foreach (var p in pp1)
+            var sp = mPathFinder.GetStart().Position;
+            mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
+            var gp = mPathFinder.GetGoal().Position;
+            mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
+        }
+
+        public void FindPath()
+        {
+            var walls = mPathFinder.GetWalls();
+            for (int y = 0; y < Height; ++y)
             {
-                var pathNode = mDrawbleNodes[p.Y, p.X];
-                pathNode.SetFillColor(Color.Cyan);
-                if (prevNode != null)
+                for (int x = 0; x < Width; ++x)
                 {
-                    var line = new Line(pathNode.Position + mHalfNodeP, prevNode.Position + mHalfNodeP);
-                    line.SetColor(Color.Red);
-                    mPathLines.Add(line);
+                    if (walls[y, x])
+                    {
+                        mDrawbleNodes[y, x].SetFillColor(Color.Blue);
+                    }
+                    else
+                    {
+                        mDrawbleNodes[y, x].SetFillColor(Color.White);
+                    }
                 }
-                prevNode = pathNode;
             }
+
+            { // show path
+                mPathLines.Clear();
+                DrawableNode prevNode = null;
+                var pp1 = mPathFinder.GetPaths().Select(x => x.Position).ToList();
+                var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
+                foreach (var p in pp1)
+                {
+                    var pathNode = mDrawbleNodes[p.Y, p.X];
+                    pathNode.SetFillColor(Color.Cyan);
+                    if (prevNode != null)
+                    {
+                        var line = new Line(pathNode.Position + mHalfNodeP, prevNode.Position + mHalfNodeP);
+                        line.SetColor(Color.Red);
+                        mPathLines.Add(line);
+                    }
+                    prevNode = pathNode;
+                }
+            } // show path
+
             var sp = mPathFinder.GetStart().Position;
             mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
             var gp = mPathFinder.GetGoal().Position;

@@ -1,18 +1,29 @@
-﻿using System;
-using System.Diagnostics;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using NF.Mathematics;
+﻿using NF.Mathematics;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System;
+using System.Diagnostics;
 
 namespace NF.AI.PathFinding.Playground
 {
+    public enum E_ClickState
+    {
+        None,
+        MoveStartNode,
+        MoveGoalNode,
+        MakeWall,
+        EraseWall,
+    }
+
     class Program
     {
+        uint WIDTH = 1000;
+        uint HEIGHT = 1000;
         int NodeSize { get; } = 50;
         Board mBoard;
+        E_ClickState mState = E_ClickState.None;
+        Int2? mLatestP = null;
 
         static void Main()
         {
@@ -22,18 +33,14 @@ namespace NF.AI.PathFinding.Playground
 
         void Run()
         {
-            uint width = 1000;
-            uint height = 1000;
-            RenderWindow window = new RenderWindow(new VideoMode(width, height), "sfml");
+            RenderWindow window = new RenderWindow(new VideoMode(WIDTH, HEIGHT), "sfml");
             window.KeyPressed += KeyPressed;
             window.Closed += Closed;
-            window.MouseButtonReleased += MouseButtonReleased;
+            window.MouseButtonPressed += OnMouseButtonPressed;
+            window.MouseMoved += OnMouseMoved;
+            window.MouseButtonReleased += OnMouseButtonReleased;
 
-            mBoard = new Board((int)width, (int)height, NodeSize);
-            mBoard.SetStart(new Int2(0, 0));
-            mBoard.SetGoal(new Int2(10, 10));
-            mBoard.StepAll();
-            mBoard.Update();
+            ResetBoard();
 
             while (window.IsOpen)
             {
@@ -43,27 +50,139 @@ namespace NF.AI.PathFinding.Playground
                 window.Display();
             }
         }
+
+        void ResetBoard()
+        {
+            mBoard = new Board((int)WIDTH, (int)HEIGHT, NodeSize);
+            mBoard.SetStart(new Int2(5, 5));
+            mBoard.SetGoal(new Int2(11, 5));
+            mBoard.StepAll();
+            mBoard.Update();
+        }
+
         Vector2i GetGridPosition(Window window, int nodeSize)
         {
             return Mouse.GetPosition(window) / nodeSize;
         }
 
-        private void MouseButtonReleased(object sender, MouseButtonEventArgs e)
+        private void OnMouseButtonPressed(object sender, MouseButtonEventArgs e)
         {
-            var window = (Window)sender;
-
-            if (e.Button == Mouse.Button.Left)
+            if (e.Button != Mouse.Button.Left)
             {
-                var mp = GetGridPosition(window, NodeSize);
-                mBoard.ToggleWall(new Int2(mp.X, mp.Y));
+                return;
+            }
 
-                var sw = Stopwatch.StartNew();
-                mBoard.StepAll();
-                sw.Stop();
-                Console.WriteLine($"Step Ticks : {sw.ElapsedTicks}");
-                
+            var window = (Window)sender;
+            var mp = GetGridPosition(window, NodeSize);
+            Int2 mmp = new Int2(mp.X, mp.Y);
+
+            mLatestP = mmp;
+
+            if (mmp == mBoard.StartP)
+            {
+                mState = E_ClickState.MoveStartNode;
+                return;
+            }
+
+            if (mmp == mBoard.GoalP)
+            {
+                mState = E_ClickState.MoveGoalNode;
+                return;
+            }
+
+            if (mBoard.IsWall(mmp))
+            {
+
+                mState = E_ClickState.EraseWall;
+                return;
+            }
+
+            mState = E_ClickState.MakeWall;
+        }
+
+        private void OnMouseMoved(object sender, MouseMoveEventArgs e)
+        {
+            if (!Mouse.IsButtonPressed(Mouse.Button.Left))
+            {
+                return;
+            }
+
+            if (mState == E_ClickState.None)
+            {
+                return;
+            }
+
+            var window = (Window)sender;
+            var mp = GetGridPosition(window, NodeSize);
+            Int2 mmp = new Int2(mp.X, mp.Y);
+            switch (mState)
+            {
+                case E_ClickState.MoveStartNode:
+                    {
+                        if (!mBoard.IsWall(mmp))
+                        {
+                            mBoard.SetStart(mmp);
+                        }
+                    }
+                    break;
+                case E_ClickState.MoveGoalNode:
+                    {
+                        if (!mBoard.IsWall(mmp))
+                        {
+                            mBoard.SetGoal(mmp);
+                        }
+                    }
+                    break;
+                case E_ClickState.MakeWall:
+                    {
+                        if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
+                        {
+                            mBoard.CreateWall(mmp);
+                        }
+                    }
+                    break;
+                case E_ClickState.EraseWall:
+                    {
+                        if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
+                        {
+                            mBoard.RemoveWall(mmp);
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            mBoard.Update();
+
+        }
+
+        private void OnMouseButtonReleased(object sender, MouseButtonEventArgs e)
+        {
+            if (e.Button != Mouse.Button.Left)
+            {
+                return;
+            }
+
+            if (mState == E_ClickState.EraseWall || mState == E_ClickState.MakeWall)
+            {
+                var window = (Window)sender;
+                var mp = GetGridPosition(window, NodeSize);
+                Int2 mmp = new Int2(mp.X, mp.Y);
+                if (mLatestP == mmp)
+                {
+                    if (mState == E_ClickState.EraseWall)
+                    {
+                        mBoard.RemoveWall(mmp);
+                    }
+                    else
+                    {
+                        mBoard.CreateWall(mmp);
+                    }
+                }
                 mBoard.Update();
             }
+            mLatestP = null;
+            mState = E_ClickState.None;
         }
 
         private void Closed(object sender, EventArgs e)
@@ -75,10 +194,31 @@ namespace NF.AI.PathFinding.Playground
         private void KeyPressed(object sender, KeyEventArgs e)
         {
             var window = (Window)sender;
-            if (e.Code == Keyboard.Key.Escape)
+            switch (e.Code)
             {
-                window.Close();
+                case Keyboard.Key.Escape:
+                    window.Close();
+                    break;
+                case Keyboard.Key.Space:
+                    FindPath();
+                    break;
+                case Keyboard.Key.R:
+                    ResetBoard();
+                    break;
+                default:
+                    break;
             }
+
+        }
+
+        void FindPath()
+        {
+            var sw = Stopwatch.StartNew();
+            mBoard.StepAll();
+            sw.Stop();
+            Console.WriteLine($"Step Ticks : {sw.ElapsedTicks}");
+
+            mBoard.FindPath();
         }
 
         static bool[,] GetWalls(string[] strs)

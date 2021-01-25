@@ -127,6 +127,15 @@ namespace NF.AI.PathFinding.JPS
             mGoal = GetOrCreateNode(p);
         }
 
+        public void SetWall(in Int2 p, bool isWall)
+        {
+            if (!IsInBoundary(p))
+            {
+                return;
+            }
+            mWalls[p.Y, p.X] = isWall;
+        }
+
         public void ToggleWall(in Int2 p)
         {
             if (!IsInBoundary(p))
@@ -363,6 +372,18 @@ namespace NF.AI.PathFinding.JPS
 
         internal bool TryJump(in Int2 p, EDirFlags dir, in Int2 goal, ref Int2 outJumped)
         {
+            if (DirFlags.IsStraight(dir))
+            {
+                return TryJumpStraight(p, dir, goal, ref outJumped);
+            }
+            else
+            {
+                return TryJumpDiagonal(p, dir, goal, ref outJumped);
+            }
+        }
+
+        internal bool TryJumpStraight(in Int2 p, EDirFlags dir, in Int2 goal, ref Int2 outJumped)
+        {
             Int2 curr = p;
             Int2 next = curr.Foward(dir);
 
@@ -390,22 +411,54 @@ namespace NF.AI.PathFinding.JPS
                     return true;
                 }
 
-                if (DirFlags.IsDiagonal(dir))
+                curr = next;
+                next = curr.Foward(dir);
+            }
+        }
+
+        internal bool TryJumpDiagonal(in Int2 p, EDirFlags dir, in Int2 goal, ref Int2 outJumped)
+        {
+            Int2 curr = p;
+            Int2 next = curr.Foward(dir);
+
+            while (true)
+            {
+                if (!IsWalkable(next))
                 {
-                    // TODO(pyoung): TOC 가능하게 수정 할 수 있나?
-                    // d1: EAST  | WEST
-                    if (TryJump(next, DirFlags.DiagonalToEastWest(dir), goal, ref outJumped))
-                    {
-                        outJumped = next;
-                        return true;
-                    }
-                    // d2: NORTH | SOUTH
-                    if (TryJump(next, DirFlags.DiagonalToNorthSouth(dir), goal, ref outJumped))
-                    {
-                        outJumped = next;
-                        return true;
-                    }
+                    return false;
                 }
+
+                if ((dir & NeighbourDir(curr)) == EDirFlags.NONE)
+                {
+                    return false;
+                }
+
+                if (next == goal)
+                {
+                    outJumped = next;
+                    return true;
+                }
+
+                if ((ForcedNeighbourDir(next, dir) & NeighbourDir(next)) != EDirFlags.NONE)
+                {
+                    outJumped = next;
+                    return true;
+                }
+
+                // d1: EAST  | WEST
+                if (TryJumpStraight(next, DirFlags.DiagonalToEastWest(dir), goal, ref outJumped))
+                {
+                    outJumped = next;
+                    return true;
+                }
+
+                // d2: NORTH | SOUTH
+                if (TryJumpStraight(next, DirFlags.DiagonalToNorthSouth(dir), goal, ref outJumped))
+                {
+                    outJumped = next;
+                    return true;
+                }
+
                 curr = next;
                 next = curr.Foward(dir);
             }

@@ -128,6 +128,14 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             mGoal = GetOrCreateNode(p);
             return true;
         }
+        public void SetWall(in Int2 p, bool isWall)
+        {
+            if (!IsInBoundary(p))
+            {
+                return;
+            }
+            mWalls[p.Y, p.X] = isWall;
+        }
 
         public bool ToggleWall(in Int2 p)
         {
