@@ -4,6 +4,12 @@ namespace NF.AI.PathFinding.Common
 {
     public class AStarNode
     {
+        public Int2 Position { get; private set; }
+        public int G { get; internal set; } = 0;
+        public int H { get; internal set; } = 0;
+        public long F => G + H;
+        public AStarNode Parent { get; internal set; }
+
         public AStarNode(in Int2 p)
         {
             this.G = 0;
@@ -22,12 +28,5 @@ namespace NF.AI.PathFinding.Common
             this.H = 0;
             this.Parent = null;
         }
-
-        public Int2 Position { get; private set; }
-        public int G { get; internal set; } = 0;
-        public int H { get; internal set; } = 0;
-        public long F => G + H;
-
-        public AStarNode Parent { get; internal set; }
     }
 }

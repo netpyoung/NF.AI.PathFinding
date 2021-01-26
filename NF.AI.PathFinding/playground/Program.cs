@@ -20,6 +20,7 @@ namespace NF.AI.PathFinding.Playground
     {
         uint WIDTH = 1000;
         uint HEIGHT = 1000;
+
         int NodeSize { get; } = 50;
         Board mBoard;
         E_ClickState mState = E_ClickState.None;
@@ -27,6 +28,7 @@ namespace NF.AI.PathFinding.Playground
 
         static void Main()
         {
+            //Main5();
             var program = new Program();
             program.Run();
         }
@@ -56,6 +58,12 @@ namespace NF.AI.PathFinding.Playground
             mBoard = new Board((int)WIDTH, (int)HEIGHT, NodeSize);
             mBoard.SetStart(new Int2(5, 5));
             mBoard.SetGoal(new Int2(11, 5));
+            mBoard.ToggleWall(new Int2(6, 5));
+
+            //mBoard.SetStart(new Int2(2, 2));
+            //mBoard.SetGoal(new Int2(7, 2));
+            //mBoard.ToggleWall(new Int2(6, 2));
+
             mBoard.StepAll();
             mBoard.Update();
         }
@@ -153,7 +161,6 @@ namespace NF.AI.PathFinding.Playground
                     break;
             }
             mBoard.Update();
-
         }
 
         private void OnMouseButtonReleased(object sender, MouseButtonEventArgs e)
@@ -216,7 +223,7 @@ namespace NF.AI.PathFinding.Playground
             var sw = Stopwatch.StartNew();
             mBoard.StepAll();
             sw.Stop();
-            Console.WriteLine($"Step Ticks : {sw.ElapsedTicks}");
+            Console.WriteLine($"Step Ticks : {1000.0 * sw.ElapsedTicks / Stopwatch.Frequency}");
 
             mBoard.FindPath();
         }

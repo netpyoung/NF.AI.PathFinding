@@ -9,6 +9,23 @@ namespace NF.AI.PathFinding.JPSOrthogonal
 {
     public class JPSOrthogonal
     {
+
+        // =======================
+        // Members
+        // =======================
+        AStarNode mStart = null;
+        AStarNode mGoal = null;
+        readonly Dictionary<Int2, AStarNode> mCreateNodes = new Dictionary<Int2, AStarNode>();
+        readonly PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)>();
+        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
+        bool[,] mWalls = null;
+
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+
+        public Int2 StartP => mStart.Position;
+        public Int2 GoalP => mGoal.Position;
+
         public JPSOrthogonal()
         {
 
@@ -189,9 +206,6 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         {
             return mWalls;
         }
-
-        public int Width { get; private set; }
-        public int Height { get; private set; }
 
 
         // =======================
@@ -441,15 +455,5 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             // calculate estimated cost
             return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
-
-        // =======================
-        // Members
-        // =======================
-        AStarNode mStart = null;
-        AStarNode mGoal = null;
-        readonly Dictionary<Int2, AStarNode> mCreateNodes = new Dictionary<Int2, AStarNode>();
-        readonly PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)>();
-        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        bool[,] mWalls = null;
     }
 }

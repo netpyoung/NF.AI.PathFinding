@@ -8,8 +8,22 @@ namespace NF.AI.PathFinding.JPSPlus
 {
     public class JPSPlusMapBaker
     {
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public int[,] BlockLUT;
+        public JPSPlusMapBakerBlock[] Blocks;
+
         #region Public
+        public JPSPlusMapBaker()
+        {
+
+        }
         public JPSPlusMapBaker(bool[,] walls)
+        {
+            Init(walls);
+        }
+
+        public void Init(bool[,] walls)
         {
             Width = walls.GetLength(1);
             Height = walls.GetLength(0);
@@ -507,10 +521,5 @@ namespace NF.AI.PathFinding.JPSPlus
             }
             return Blocks[index];
         }
-
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-        public int[,] BlockLUT;
-        public JPSPlusMapBakerBlock[] Blocks;
     }
 }

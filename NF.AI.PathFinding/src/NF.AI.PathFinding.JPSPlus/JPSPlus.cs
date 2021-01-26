@@ -3,12 +3,23 @@ using NF.Collections.Generic;
 using NF.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace NF.AI.PathFinding.JPSPlus
 {
     public class JPSPlus
     {
+        // =======================
+        // Members
+        // =======================
+        JPSPlusNode mStart = null;
+        JPSPlusNode mGoal = null;
+        readonly Dictionary<Int2, JPSPlusNode> mCreatedNodes = new Dictionary<Int2, JPSPlusNode>();
+        readonly PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)>();
+        readonly HashSet<JPSPlusNode> mCloseList = new HashSet<JPSPlusNode>();
+        JPSPlusBakedMap mBakedMap;
+
         public JPSPlus()
         {
 
@@ -23,9 +34,18 @@ namespace NF.AI.PathFinding.JPSPlus
         {
             mOpenList.Clear();
             mCloseList.Clear();
-            foreach (var node in mCreatedNodes.Values)
+
+            foreach (var node in mCreatedNodes.Values.ToList())
             {
-                node.Refresh();
+                int index = mBakedMap.BlockLUT[node.Position.Y, node.Position.X];
+                if (index < 0)
+                {
+                    mCreatedNodes.Remove(node.Position);
+                }
+                else
+                {
+                    node.Refresh(mBakedMap.Blocks[index].JumpDistances);
+                }
             }
             mOpenList.Enqueue((mStart, EDirFlags.ALL), mStart.F);
             return Step(stepCount);
@@ -118,7 +138,7 @@ namespace NF.AI.PathFinding.JPSPlus
 
                     (JPSPlusNode, EDirFlags) openJump = (nextNode, processDir);
 
-                    if (!mOpenList.Contains(openJump) || !mCloseList.Contains(nextNode))
+                    if (!mOpenList.Contains(openJump) && !mCloseList.Contains(nextNode))
                     {
                         nextNode.Parent = currNode;
                         nextNode.G = nextG;
@@ -135,6 +155,21 @@ namespace NF.AI.PathFinding.JPSPlus
                 }
                 step--;
             }
+        }
+
+        public bool IsWalkable(in Int2 p)
+        {
+            if (mBakedMap == null)
+            {
+                return false;
+            }
+
+            if (!IsInBoundary(p))
+            {
+                return false;
+            }
+
+            return mBakedMap.BlockLUT[p.Y, p.X] >= 0;
         }
 
         public bool SetStart(in Int2 p)
@@ -164,6 +199,7 @@ namespace NF.AI.PathFinding.JPSPlus
             {
                 return false;
             }
+
             mGoal = GetOrCreatedNode(p);
             return true;
         }
@@ -173,10 +209,10 @@ namespace NF.AI.PathFinding.JPSPlus
             return new JPSPlusNode(p, mBakedMap.Blocks[mBakedMap.BlockLUT[p.Y, p.X]].JumpDistances);
         }
 
-        public IReadOnlyList<JPSPlusNode> GetPaths()
+        public IReadOnlyList<AStarNode> GetPaths()
         {
-            List<JPSPlusNode> ret = new List<JPSPlusNode>();
-            JPSPlusNode n = mGoal;
+            List<AStarNode> ret = new List<AStarNode>();
+            AStarNode n = mGoal;
             while (n != null)
             {
                 ret.Add(n);
@@ -251,9 +287,9 @@ namespace NF.AI.PathFinding.JPSPlus
                 case EDirFlags.NORTHWEST:
                     return EDirFlags.NORTH | EDirFlags.NORTHWEST | EDirFlags.WEST;
                 case EDirFlags.NORTHEAST:
-                    return EDirFlags.EAST | EDirFlags.NORTHEAST | EDirFlags.NORTH;
+                    return EDirFlags.NORTH | EDirFlags.NORTHEAST | EDirFlags.EAST;
                 case EDirFlags.SOUTHWEST:
-                    return EDirFlags.WEST | EDirFlags.SOUTHWEST | EDirFlags.SOUTH;
+                    return EDirFlags.SOUTH | EDirFlags.SOUTHWEST | EDirFlags.WEST;
                 case EDirFlags.SOUTHEAST:
                     return EDirFlags.SOUTH | EDirFlags.SOUTHEAST | EDirFlags.EAST;
                 default:
@@ -347,15 +383,5 @@ namespace NF.AI.PathFinding.JPSPlus
             // calculate estimated cost
             return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
-
-        // =======================
-        // Members
-        // =======================
-        JPSPlusNode mStart = null;
-        JPSPlusNode mGoal = null;
-        readonly Dictionary<Int2, JPSPlusNode> mCreatedNodes = new Dictionary<Int2, JPSPlusNode>();
-        readonly PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)>();
-        readonly HashSet<JPSPlusNode> mCloseList = new HashSet<JPSPlusNode>();
-        JPSPlusBakedMap mBakedMap;
     }
 }

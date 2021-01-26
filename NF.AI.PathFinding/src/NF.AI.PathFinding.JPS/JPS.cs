@@ -9,6 +9,21 @@ namespace NF.AI.PathFinding.JPS
 {
     public class JPS
     {
+        // =======================
+        // Members
+        // =======================
+        AStarNode mStart = null;
+        AStarNode mGoal = null;
+        readonly Dictionary<Int2, AStarNode> mCreatedNodes = new Dictionary<Int2, AStarNode>();
+        readonly PriorityQueue<(AStarNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode Node, EDirFlags Dir)>();
+        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
+        bool[,] mWalls = null;
+
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public Int2 StartP => mStart.Position;
+        public Int2 GoalP => mGoal.Position;
+
         public JPS()
         {
 
@@ -187,9 +202,6 @@ namespace NF.AI.PathFinding.JPS
         {
             return mWalls;
         }
-
-        public int Width { get; private set; }
-        public int Height { get; private set; }
 
         public bool IsWalkable(in Int2 p)
         {
@@ -502,15 +514,5 @@ namespace NF.AI.PathFinding.JPS
             // calculate estimated cost
             return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;
         }
-
-        // =======================
-        // Members
-        // =======================
-        AStarNode mStart = null;
-        AStarNode mGoal = null;
-        readonly Dictionary<Int2, AStarNode> mCreatedNodes = new Dictionary<Int2, AStarNode>();
-        readonly PriorityQueue<(AStarNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode Node, EDirFlags Dir)>();
-        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        bool[,] mWalls = null;
     }
 }

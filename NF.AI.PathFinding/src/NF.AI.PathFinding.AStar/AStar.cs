@@ -8,6 +8,24 @@ namespace NF.AI.PathFinding.AStar
 {
     public class AStar
     {
+        // ============================
+        // Private
+        // ============================
+        AStarNode mStart = null;
+        AStarNode mGoal = null;
+        readonly AStarNode[,] mNodes;
+        readonly PriorityQueue<AStarNode> mOpenList = new PriorityQueue<AStarNode>();
+        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
+        readonly bool[,] mWalls;
+
+        // ============================
+        // Properties
+        // ============================
+        public int Width { get; private set; }
+        public int Height { get; private set; }
+        public Int2 StartP => mStart.Position;
+        public Int2 GoalP => mGoal.Position;
+
         public AStar(int width, int height)
         {
             Width = width;
@@ -222,22 +240,7 @@ namespace NF.AI.PathFinding.AStar
         {
             return mWalls[pos.Y, pos.X];
         }
-        // ============================
-        // Properties
-        // ============================
-        public int Width { get; private set; }
-        public int Height { get; private set; }
-
-        // ============================
-        // Private
-        // ============================
-        AStarNode mStart = null;
-        AStarNode mGoal = null;
-        readonly AStarNode[,] mNodes;
-        readonly PriorityQueue<AStarNode> mOpenList = new PriorityQueue<AStarNode>();
-        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        readonly bool[,] mWalls;
-
+       
         static int G(AStarNode from, AStarNode adjacent)
         {
             // cost so far to reach n 

@@ -12,17 +12,25 @@ namespace NF.AI.PathFinding.Playground
         DrawableNode[,] mDrawbleNodes;
         BresenHamPathSmoother mPathSmoother = new BresenHamPathSmoother();
         //AStar.AStar mPathFinder;
-        JPS.JPS mPathFinder;
+        //JPS.JPS mPathFinder;
         //JPSOrthogonal.JPSOrthogonal mPathFinder;
+        JPSPlus.JPSPlusRunner mPathFinder;
         List<Line> mGridLines = new List<Line>();
         List<Line> mPathLines = new List<Line>();
         Vector2f mHalfNodeP;
 
+        public int Width { get; }
+        public int Height { get; }
+        public int NodeSize { get; }
+        public Int2 StartP => mPathFinder.StartP;
+        public Int2 GoalP => mPathFinder.GoalP;
+
         public Board(int screenWidth, int screenHeight, int nodeSize)
         {
             //mPathFinder = new AStar.AStar(screenWidth / nodeSize, screenHeight / nodeSize);
-            mPathFinder = new JPS.JPS(screenWidth / nodeSize, screenHeight / nodeSize);
+            //mPathFinder = new JPS.JPS(screenWidth / nodeSize, screenHeight / nodeSize);
             //mPathFinder = new JPSOrthogonal.JPSOrthogonal(screenWidth / nodeSize, screenHeight / nodeSize);
+            mPathFinder = new JPSPlus.JPSPlusRunner(screenWidth / nodeSize, screenHeight / nodeSize);
 
             Width = screenWidth / nodeSize;
             Height = screenHeight / nodeSize;
@@ -68,14 +76,6 @@ namespace NF.AI.PathFinding.Playground
                 target.Draw(line);
             }
         }
-
-        public int Width { get; }
-        public int Height { get; }
-
-        public int NodeSize { get; }
-
-        public Int2 StartP => mPathFinder.GetStart().Position;
-        public Int2 GoalP => mPathFinder.GetGoal().Position;
 
         public void ToggleWall(in Int2 mp)
         {
@@ -130,9 +130,9 @@ namespace NF.AI.PathFinding.Playground
                 }
             }
 
-            var sp = mPathFinder.GetStart().Position;
+            var sp = mPathFinder.StartP;
             mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
-            var gp = mPathFinder.GetGoal().Position;
+            var gp = mPathFinder.GoalP;
             mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
         }
 
@@ -158,7 +158,7 @@ namespace NF.AI.PathFinding.Playground
                 mPathLines.Clear();
                 DrawableNode prevNode = null;
                 var pp1 = mPathFinder.GetPaths().Select(x => x.Position).ToList();
-                var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
+                //var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
                 foreach (var p in pp1)
                 {
                     var pathNode = mDrawbleNodes[p.Y, p.X];
@@ -173,9 +173,9 @@ namespace NF.AI.PathFinding.Playground
                 }
             } // show path
 
-            var sp = mPathFinder.GetStart().Position;
+            var sp = mPathFinder.StartP;
             mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
-            var gp = mPathFinder.GetGoal().Position;
+            var gp = mPathFinder.GoalP;
             mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
         }
     }

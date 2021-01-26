@@ -5,10 +5,9 @@ namespace NF.AI.PathFinding.JPSPlus
 {
     public class JPSPlusMapBakerBlock
     {
-        public bool IsWall;
-        public EDirFlags JumpDirFlags;
-        public int[] JumpDistances = new int[8];
-        public Int2 Pos;
+        public readonly int[] JumpDistances = new int[8];
+        public readonly Int2 Pos;
+        public EDirFlags JumpDirFlags = EDirFlags.NONE;
 
         public JPSPlusMapBakerBlock(in Int2 pos)
         {

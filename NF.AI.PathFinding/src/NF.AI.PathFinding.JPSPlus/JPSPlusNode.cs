@@ -1,37 +1,27 @@
 ﻿using NF.AI.PathFinding.Common;
 using NF.Mathematics;
+using System;
 
 namespace NF.AI.PathFinding.JPSPlus
 {
-    public class JPSPlusNode
+    public class JPSPlusNode : AStarNode
     {
-        public JPSPlusNode(in Int2 p, int[] jumpDistances)
+        int[] mJumpDistances;
+
+        public JPSPlusNode(in Int2 p, int[] jumpDistances) : base(p)
         {
-            this.G = 0;
-            this.H = 0;
-            this.Position = p;
-            this.JumpDistances = jumpDistances;
+            this.mJumpDistances = jumpDistances;
         }
 
-        public void Refresh()
+        public int GetDistance(EDirFlags dir)
         {
-            this.G = 0;
-            this.H = 0;
-            this.Parent = null;
+            return mJumpDistances[DirFlags.ToArrayIndex(dir)];
         }
 
-        public Int2 Position { get; private set; }
-        public int[] JumpDistances;
-
-        public int G { get; internal set; } = 0;
-        public int H { get; internal set; } = 0;
-        public long F => G + H;
-
-        public JPSPlusNode Parent { get; internal set; }
-
-        internal int GetDistance(EDirFlags dir)
+        internal void Refresh(int[] jumpDistances)
         {
-            return JumpDistances[DirFlags.ToArrayIndex(dir)];
+            mJumpDistances = jumpDistances;
+            base.Refresh();
         }
     }
 }
