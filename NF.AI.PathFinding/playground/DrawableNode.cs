@@ -1,12 +1,12 @@
-﻿using SFML.Graphics;
+using SFML.Graphics;
 using SFML.System;
 
 namespace NF.AI.PathFinding.Playground
 {
-    class DrawableNode : Transformable, Drawable
+    internal class DrawableNode : Transformable, Drawable
     {
-        private int mNodeSize;
-        RectangleShape mBack = new RectangleShape();
+        private readonly int mNodeSize;
+        private readonly RectangleShape mBack = new RectangleShape();
 
         public DrawableNode(int nodeSize)
         {
@@ -22,7 +22,7 @@ namespace NF.AI.PathFinding.Playground
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            states.Transform *= this.Transform;
+            states.Transform *= Transform;
             target.Draw(mBack, states);
         }
 

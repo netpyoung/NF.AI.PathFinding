@@ -1,6 +1,7 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +14,12 @@ namespace NF.AI.PathFinding.JPSPlus
         // =======================
         // Members
         // =======================
-        JPSPlusNode mStart = null;
-        JPSPlusNode mGoal = null;
-        readonly Dictionary<Int2, JPSPlusNode> mCreatedNodes = new Dictionary<Int2, JPSPlusNode>();
-        readonly PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)>();
-        readonly HashSet<JPSPlusNode> mCloseList = new HashSet<JPSPlusNode>();
-        JPSPlusBakedMap mBakedMap;
+        private JPSPlusNode mStart = null;
+        private JPSPlusNode mGoal = null;
+        private readonly Dictionary<Int2, JPSPlusNode> mCreatedNodes = new Dictionary<Int2, JPSPlusNode>();
+        private readonly PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)> mOpenList = new PriorityQueue<(JPSPlusNode Node, EDirFlags Dir)>();
+        private readonly HashSet<JPSPlusNode> mCloseList = new HashSet<JPSPlusNode>();
+        private JPSPlusBakedMap mBakedMap;
 
         public JPSPlus()
         {
@@ -35,12 +36,12 @@ namespace NF.AI.PathFinding.JPSPlus
             mOpenList.Clear();
             mCloseList.Clear();
 
-            foreach (var node in mCreatedNodes.Values.ToList())
+            foreach (JPSPlusNode node in mCreatedNodes.Values.ToList())
             {
                 int index = mBakedMap.BlockLUT[node.Position.Y, node.Position.X];
                 if (index < 0)
                 {
-                    mCreatedNodes.Remove(node.Position);
+                    _ = mCreatedNodes.Remove(node.Position);
                 }
                 else
                 {
@@ -68,10 +69,10 @@ namespace NF.AI.PathFinding.JPSPlus
                 (JPSPlusNode Node, EDirFlags fromDir) curr = mOpenList.Dequeue();
                 JPSPlusNode currNode = curr.Node;
                 EDirFlags fromDir = curr.fromDir;
-                mCloseList.Add(currNode);
+                _ = mCloseList.Add(currNode);
 
                 Int2 currPos = currNode.Position;
-                Int2 goalPos = this.mGoal.Position;
+                Int2 goalPos = mGoal.Position;
 
                 if (currPos == goalPos)
                 {
@@ -103,7 +104,7 @@ namespace NF.AI.PathFinding.JPSPlus
                         // 골과 같은 방향
                         // 골 노드거리 방향거리보다 같거나 작으면 그게 바로 골
                         nextNode = mGoal;
-                        nextG = currNode.G + Math.Max(lengthX, lengthY) * 10;
+                        nextG = currNode.G + (Math.Max(lengthX, lengthY) * 10);
                     }
                     else if (isDiagonalDir
                         && IsGoalInGeneralDirection(currPos, processDir, goalPos)
@@ -123,11 +124,11 @@ namespace NF.AI.PathFinding.JPSPlus
                         nextNode = GetNode(currNode, processDir);
                         if (isDiagonalDir)
                         {
-                            nextG = currNode.G + Math.Max(lengthX, lengthY) * 14;
+                            nextG = currNode.G + (Math.Max(lengthX, lengthY) * 14);
                         }
                         else
                         {
-                            nextG = currNode.G + Math.Max(lengthX, lengthY) * 10;
+                            nextG = currNode.G + (Math.Max(lengthX, lengthY) * 10);
                         }
                     }
                     else
@@ -225,13 +226,13 @@ namespace NF.AI.PathFinding.JPSPlus
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JPSPlusNode GetStart()
         {
-            return this.mStart;
+            return mStart;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public JPSPlusNode GetGoal()
         {
-            return this.mGoal;
+            return mGoal;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -263,13 +264,13 @@ namespace NF.AI.PathFinding.JPSPlus
             return newNode;
         }
 
-        bool IsInBoundary(in Int2 p)
+        private bool IsInBoundary(in Int2 p)
         {
-            return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
+            return 0 <= p.X && p.X < Width && 0 <= p.Y && p.Y < Height;
         }
 
         #region plus
-        EDirFlags ValidLookUPTable(EDirFlags dir)
+        private EDirFlags ValidLookUPTable(EDirFlags dir)
         {
             switch (dir)
             {
@@ -297,7 +298,7 @@ namespace NF.AI.PathFinding.JPSPlus
             }
         }
 
-        bool IsGoalInExactDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
+        private bool IsGoalInExactDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
         {
             int dx = goal.X - curr.X;
             int dy = goal.Y - curr.Y;
@@ -305,27 +306,27 @@ namespace NF.AI.PathFinding.JPSPlus
             switch (processDir)
             {
                 case EDirFlags.NORTH:
-                    return (dx == 0 && dy < 0);
+                    return dx == 0 && dy < 0;
                 case EDirFlags.SOUTH:
-                    return (dx == 0 && dy > 0);
+                    return dx == 0 && dy > 0;
                 case EDirFlags.WEST:
-                    return (dx < 0 && dy == 0);
+                    return dx < 0 && dy == 0;
                 case EDirFlags.EAST:
-                    return (dx > 0 && dy == 0);
+                    return dx > 0 && dy == 0;
                 case EDirFlags.NORTHWEST:
-                    return (dx < 0 && dy < 0) && (Math.Abs(dx) == Math.Abs(dy));
+                    return dx < 0 && dy < 0 && (Math.Abs(dx) == Math.Abs(dy));
                 case EDirFlags.NORTHEAST:
-                    return (dx > 0 && dy < 0) && (Math.Abs(dx) == Math.Abs(dy));
+                    return dx > 0 && dy < 0 && (Math.Abs(dx) == Math.Abs(dy));
                 case EDirFlags.SOUTHWEST:
-                    return (dx < 0 && dy > 0) && (Math.Abs(dx) == Math.Abs(dy));
+                    return dx < 0 && dy > 0 && (Math.Abs(dx) == Math.Abs(dy));
                 case EDirFlags.SOUTHEAST:
-                    return (dx > 0 && dy > 0) && (Math.Abs(dx) == Math.Abs(dy));
+                    return dx > 0 && dy > 0 && (Math.Abs(dx) == Math.Abs(dy));
                 default:
                     return false;
             }
         }
 
-        bool IsGoalInGeneralDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
+        private bool IsGoalInGeneralDirection(in Int2 curr, EDirFlags processDir, in Int2 goal)
         {
             int dx = goal.X - curr.X;
             int dy = goal.Y - curr.Y;
@@ -333,42 +334,42 @@ namespace NF.AI.PathFinding.JPSPlus
             switch (processDir)
             {
                 case EDirFlags.NORTH:
-                    return (dx == 0 && dy < 0);
+                    return dx == 0 && dy < 0;
                 case EDirFlags.SOUTH:
-                    return (dx == 0 && dy > 0);
+                    return dx == 0 && dy > 0;
                 case EDirFlags.WEST:
-                    return (dx < 0 && dy == 0);
+                    return dx < 0 && dy == 0;
                 case EDirFlags.EAST:
-                    return (dx > 0 && dy == 0);
+                    return dx > 0 && dy == 0;
                 case EDirFlags.NORTHWEST:
-                    return (dx < 0 && dy < 0);
+                    return dx < 0 && dy < 0;
                 case EDirFlags.NORTHEAST:
-                    return (dx > 0 && dy < 0);
+                    return dx > 0 && dy < 0;
                 case EDirFlags.SOUTHWEST:
-                    return (dx < 0 && dy > 0);
+                    return dx < 0 && dy > 0;
                 case EDirFlags.SOUTHEAST:
-                    return (dx > 0 && dy > 0);
+                    return dx > 0 && dy > 0;
                 default:
                     return false;
             }
         }
 
-        JPSPlusNode GetNode(JPSPlusNode node, EDirFlags dir)
+        private JPSPlusNode GetNode(JPSPlusNode node, EDirFlags dir)
         {
             return GetOrCreatedNode(node.Position + (DirFlags.ToPos(dir) * node.GetDistance(dir)));
         }
 
-        JPSPlusNode GetNode(JPSPlusNode node, int dist, EDirFlags dir)
+        private JPSPlusNode GetNode(JPSPlusNode node, int dist, EDirFlags dir)
         {
             return GetOrCreatedNode(node.Position + (DirFlags.ToPos(dir) * dist));
         }
 
-        int ColDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
+        private int ColDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
         {
             return Math.Abs(goalNode.Position.X - currNode.Position.X);
         }
 
-        int RowDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
+        private int RowDiff(JPSPlusNode currNode, JPSPlusNode goalNode)
         {
             return Math.Abs(goalNode.Position.Y - currNode.Position.Y);
         }
@@ -378,7 +379,7 @@ namespace NF.AI.PathFinding.JPSPlus
         // Statics
         // =========================================
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int H(JPSPlusNode n, JPSPlusNode goal)
+        private static int H(JPSPlusNode n, JPSPlusNode goal)
         {
             // calculate estimated cost
             return (Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y)) * 10;

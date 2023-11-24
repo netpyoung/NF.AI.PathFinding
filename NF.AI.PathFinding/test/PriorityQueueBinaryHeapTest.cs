@@ -1,5 +1,6 @@
-using Xunit;
 using System.Collections.Generic;
+
+using Xunit;
 
 namespace NF.Collections.Generic.Test
 {
@@ -8,14 +9,14 @@ namespace NF.Collections.Generic.Test
         [Fact]
         public void Test1()
         {
-            var q = new PriorityQueueBinaryHeap<int>();
+            PriorityQueueBinaryHeap<int> q = new PriorityQueueBinaryHeap<int>();
             q.Push(20);
             q.Push(10);
             q.Push(30);
             q.Push(90);
             q.Push(40);
 
-            var lst = new List<int>();
+            List<int> lst = new List<int>();
             while (q.Count > 0)
             {
                 lst.Add(q.Pop());

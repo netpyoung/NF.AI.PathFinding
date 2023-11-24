@@ -1,7 +1,9 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
+
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+
 using System;
 using System.Diagnostics;
 
@@ -16,24 +18,25 @@ namespace NF.AI.PathFinding.Playground
         EraseWall,
     }
 
-    class Program
+    internal class Program
     {
-        uint WIDTH = 1000;
-        uint HEIGHT = 1000;
+        private readonly uint WIDTH = 1000;
+        private readonly uint HEIGHT = 1000;
 
-        int NodeSize { get; } = 50;
-        Board mBoard;
-        E_ClickState mState = E_ClickState.None;
-        Int2? mLatestP = null;
+        private int NodeSize { get; } = 50;
 
-        static void Main()
+        private Board mBoard;
+        private E_ClickState mState = E_ClickState.None;
+        private Int2? mLatestP = null;
+
+        private static void Main()
         {
             //Main5();
-            var program = new Program();
+            Program program = new Program();
             program.Run();
         }
 
-        void Run()
+        private void Run()
         {
             RenderWindow window = new RenderWindow(new VideoMode(WIDTH, HEIGHT), "sfml");
             window.KeyPressed += KeyPressed;
@@ -53,7 +56,7 @@ namespace NF.AI.PathFinding.Playground
             }
         }
 
-        void ResetBoard()
+        private void ResetBoard()
         {
             mBoard = new Board((int)WIDTH, (int)HEIGHT, NodeSize);
             mBoard.SetStart(new Int2(5, 5));
@@ -68,7 +71,7 @@ namespace NF.AI.PathFinding.Playground
             mBoard.Update();
         }
 
-        Vector2i GetGridPosition(Window window, int nodeSize)
+        private Vector2i GetGridPosition(Window window, int nodeSize)
         {
             return Mouse.GetPosition(window) / nodeSize;
         }
@@ -80,8 +83,8 @@ namespace NF.AI.PathFinding.Playground
                 return;
             }
 
-            var window = (Window)sender;
-            var mp = GetGridPosition(window, NodeSize);
+            Window window = (Window)sender;
+            Vector2i mp = GetGridPosition(window, NodeSize);
             Int2 mmp = new Int2(mp.X, mp.Y);
 
             mLatestP = mmp;
@@ -120,43 +123,43 @@ namespace NF.AI.PathFinding.Playground
                 return;
             }
 
-            var window = (Window)sender;
-            var mp = GetGridPosition(window, NodeSize);
+            Window window = (Window)sender;
+            Vector2i mp = GetGridPosition(window, NodeSize);
             Int2 mmp = new Int2(mp.X, mp.Y);
             switch (mState)
             {
                 case E_ClickState.MoveStartNode:
+                {
+                    if (!mBoard.IsWall(mmp))
                     {
-                        if (!mBoard.IsWall(mmp))
-                        {
-                            mBoard.SetStart(mmp);
-                        }
+                        mBoard.SetStart(mmp);
                     }
-                    break;
+                }
+                break;
                 case E_ClickState.MoveGoalNode:
+                {
+                    if (!mBoard.IsWall(mmp))
                     {
-                        if (!mBoard.IsWall(mmp))
-                        {
-                            mBoard.SetGoal(mmp);
-                        }
+                        mBoard.SetGoal(mmp);
                     }
-                    break;
+                }
+                break;
                 case E_ClickState.MakeWall:
+                {
+                    if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
                     {
-                        if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
-                        {
-                            mBoard.CreateWall(mmp);
-                        }
+                        mBoard.CreateWall(mmp);
                     }
-                    break;
+                }
+                break;
                 case E_ClickState.EraseWall:
+                {
+                    if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
                     {
-                        if (mmp != mBoard.StartP && mmp != mBoard.GoalP)
-                        {
-                            mBoard.RemoveWall(mmp);
-                        }
+                        mBoard.RemoveWall(mmp);
                     }
-                    break;
+                }
+                break;
                 default:
                     break;
             }
@@ -172,8 +175,8 @@ namespace NF.AI.PathFinding.Playground
 
             if (mState == E_ClickState.EraseWall || mState == E_ClickState.MakeWall)
             {
-                var window = (Window)sender;
-                var mp = GetGridPosition(window, NodeSize);
+                Window window = (Window)sender;
+                Vector2i mp = GetGridPosition(window, NodeSize);
                 Int2 mmp = new Int2(mp.X, mp.Y);
                 if (mLatestP == mmp)
                 {
@@ -194,13 +197,13 @@ namespace NF.AI.PathFinding.Playground
 
         private void Closed(object sender, EventArgs e)
         {
-            var window = (Window)sender;
+            Window window = (Window)sender;
             window.Close();
         }
 
         private void KeyPressed(object sender, KeyEventArgs e)
         {
-            var window = (Window)sender;
+            Window window = (Window)sender;
             switch (e.Code)
             {
                 case Keyboard.Key.Escape:
@@ -218,9 +221,9 @@ namespace NF.AI.PathFinding.Playground
 
         }
 
-        void FindPath()
+        private void FindPath()
         {
-            var sw = Stopwatch.StartNew();
+            Stopwatch sw = Stopwatch.StartNew();
             mBoard.StepAll();
             sw.Stop();
             Console.WriteLine($"Step Ticks : {1000.0 * sw.ElapsedTicks / Stopwatch.Frequency}");
@@ -228,11 +231,11 @@ namespace NF.AI.PathFinding.Playground
             mBoard.FindPath();
         }
 
-        static bool[,] GetWalls(string[] strs)
+        private static bool[,] GetWalls(string[] strs)
         {
-            var height = strs.Length;
-            var width = strs[0].Length;
-            var walls = new bool[height, width];
+            int height = strs.Length;
+            int width = strs[0].Length;
+            bool[,] walls = new bool[height, width];
             for (int y = 0; y < height; ++y)
             {
                 for (int x = 0; x < width; ++x)
@@ -248,9 +251,9 @@ namespace NF.AI.PathFinding.Playground
             return walls;
         }
 
-        static void Main5()
+        private static void Main5()
         {
-            var walls = GetWalls(new string[] {
+            bool[,] walls = GetWalls(new string[] {
                  "..X...X..",
                  "......X..",
                  ".XX...XX.",
@@ -258,20 +261,20 @@ namespace NF.AI.PathFinding.Playground
                  "..X...X..",
             });
 
-            var jpspBaker = new JPSPlus.JPSPlusMapBaker(walls);
-            var bakedMap = jpspBaker.Bake();
-            var jpsp = new JPSPlus.JPSPlus();
+            JPSPlus.JPSPlusMapBaker jpspBaker = new JPSPlus.JPSPlusMapBaker(walls);
+            JPSPlus.JPSPlusBakedMap bakedMap = jpspBaker.Bake();
+            JPSPlus.JPSPlus jpsp = new JPSPlus.JPSPlus();
             jpsp.Init(bakedMap);
 
-            jpsp.SetStart(new Int2(0, 4));
-            jpsp.SetGoal(new Int2(7, 0));
+            _ = jpsp.SetStart(new Int2(0, 4));
+            _ = jpsp.SetGoal(new Int2(7, 0));
 
             Stopwatch sw = Stopwatch.StartNew();
             bool isOk = jpsp.StepAll();
             sw.Stop();
             Console.WriteLine($"JPSPlus Take MS: {sw.ElapsedMilliseconds}");
 
-            foreach (var path in jpsp.GetPaths())
+            foreach (Common.AStarNode path in jpsp.GetPaths())
             {
                 Console.WriteLine(path.Position);
             }
@@ -279,16 +282,16 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main2()
+        private static void Main2()
         {
-            var walls = GetWalls(new string[] {
+            bool[,] walls = GetWalls(new string[] {
                  "..X...X..",
                  "......X..",
                  ".XX...XX.",
                  "..X......",
                  "..X...X..",
             });
-            var jps = new JPS.JPS(walls);
+            JPS.JPS jps = new JPS.JPS(walls);
             jps.SetStart(new Int2(0, 4));
             jps.SetGoal(new Int2(7, 0));
 
@@ -297,7 +300,7 @@ namespace NF.AI.PathFinding.Playground
             sw.Stop();
             Console.WriteLine($"JPS Take MS: {sw.ElapsedMilliseconds}");
 
-            foreach (var path in jps.GetPaths())
+            foreach (Common.AStarNode path in jps.GetPaths())
             {
                 Console.WriteLine(path.Position);
             }
@@ -305,25 +308,25 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main3()
+        private static void Main3()
         {
-            var walls = GetWalls(new string[] {
+            bool[,] walls = GetWalls(new string[] {
                  "..X...X..",
                  "......X..",
                  ".XX...XX.",
                  "..X......",
                  "..X...X..",
             });
-            var astar = new AStar.AStar(walls);
-            astar.SetStart(new Int2(0, 4));
-            astar.SetGoal(new Int2(7, 0));
+            AStar.AStar astar = new AStar.AStar(walls);
+            _ = astar.SetStart(new Int2(0, 4));
+            _ = astar.SetGoal(new Int2(7, 0));
 
             Stopwatch sw = Stopwatch.StartNew();
             bool isOk = astar.StepAll();
             sw.Stop();
             Console.WriteLine($"AStar Take MS: {sw.ElapsedMilliseconds}");
 
-            foreach (var path in astar.GetPaths())
+            foreach (Common.AStarNode path in astar.GetPaths())
             {
                 Console.WriteLine(path.Position);
             }
@@ -331,25 +334,25 @@ namespace NF.AI.PathFinding.Playground
             Console.WriteLine("Hello World!");
         }
 
-        static void Main4()
+        private static void Main4()
         {
-            var walls = GetWalls(new string[] {
+            bool[,] walls = GetWalls(new string[] {
                  "..X...X..",
                  "......X..",
                  ".XX...XX.",
                  "..X......",
                  "..X...X..",
             });
-            var jpso = new JPSOrthogonal.JPSOrthogonal(walls);
-            jpso.SetStart(new Int2(0, 4));
-            jpso.SetGoal(new Int2(7, 0));
+            JPSOrthogonal.JPSOrthogonal jpso = new JPSOrthogonal.JPSOrthogonal(walls);
+            _ = jpso.SetStart(new Int2(0, 4));
+            _ = jpso.SetGoal(new Int2(7, 0));
 
             Stopwatch sw = Stopwatch.StartNew();
             bool isOk = jpso.StepAll();
             sw.Stop();
             Console.WriteLine($"JPSOrthogonal Take MS: {sw.ElapsedMilliseconds}");
 
-            foreach (var path in jpso.GetPaths())
+            foreach (Common.AStarNode path in jpso.GetPaths())
             {
                 Console.WriteLine(path.Position);
             }

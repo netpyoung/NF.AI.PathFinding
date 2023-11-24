@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace NF.Mathematics
@@ -11,15 +11,18 @@ namespace NF.Mathematics
 
         public Int2(int x, int y)
         {
-            this.X = x;
-            this.Y = y;
+            X = x;
+            Y = y;
         }
 
         [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public Int2 XY
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new Int2(X, Y);
+            get
+            {
+                return new Int2(X, Y);
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
@@ -33,7 +36,10 @@ namespace NF.Mathematics
         public Int2 YX
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new Int2(Y, X);
+            get
+            {
+                return new Int2(Y, X);
+            }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set

@@ -1,23 +1,26 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Mathematics;
+
 using SFML.Graphics;
 using SFML.System;
+
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NF.AI.PathFinding.Playground
 {
-    class Board : Drawable
+    internal class Board : Drawable
     {
-        DrawableNode[,] mDrawbleNodes;
-        BresenHamPathSmoother mPathSmoother = new BresenHamPathSmoother();
+        private readonly DrawableNode[,] mDrawbleNodes;
+        private readonly BresenHamPathSmoother mPathSmoother = new BresenHamPathSmoother();
+
         //AStar.AStar mPathFinder;
         //JPS.JPS mPathFinder;
         //JPSOrthogonal.JPSOrthogonal mPathFinder;
-        JPSPlus.JPSPlusRunner mPathFinder;
-        List<Line> mGridLines = new List<Line>();
-        List<Line> mPathLines = new List<Line>();
-        Vector2f mHalfNodeP;
+        private readonly JPSPlus.JPSPlusRunner mPathFinder;
+        private readonly List<Line> mGridLines = new List<Line>();
+        private readonly List<Line> mPathLines = new List<Line>();
+        private Vector2f mHalfNodeP;
 
         public int Width { get; }
         public int Height { get; }
@@ -52,15 +55,17 @@ namespace NF.AI.PathFinding.Playground
             {
                 for (int x = 0; x < Width; ++x)
                 {
-                    mDrawbleNodes[y, x] = new DrawableNode(nodeSize);
-                    mDrawbleNodes[y, x].Position = new Vector2f(x * nodeSize, y * nodeSize);
+                    mDrawbleNodes[y, x] = new DrawableNode(nodeSize)
+                    {
+                        Position = new Vector2f(x * nodeSize, y * nodeSize)
+                    };
                 }
             }
         }
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            foreach (var line in mGridLines)
+            foreach (Line line in mGridLines)
             {
                 target.Draw(line);
             }
@@ -71,7 +76,7 @@ namespace NF.AI.PathFinding.Playground
                     target.Draw(mDrawbleNodes[y, x]);
                 }
             }
-            foreach (var line in mPathLines)
+            foreach (Line line in mPathLines)
             {
                 target.Draw(line);
             }
@@ -94,7 +99,7 @@ namespace NF.AI.PathFinding.Playground
 
         internal void StepAll()
         {
-            mPathFinder.StepAll();
+            _ = mPathFinder.StepAll();
         }
 
         public bool IsWall(in Int2 p)
@@ -114,7 +119,7 @@ namespace NF.AI.PathFinding.Playground
 
         internal void Update()
         {
-            var walls = mPathFinder.GetWalls();
+            bool[,] walls = mPathFinder.GetWalls();
             for (int y = 0; y < Height; ++y)
             {
                 for (int x = 0; x < Width; ++x)
@@ -130,15 +135,15 @@ namespace NF.AI.PathFinding.Playground
                 }
             }
 
-            var sp = mPathFinder.StartP;
+            Int2 sp = mPathFinder.StartP;
             mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
-            var gp = mPathFinder.GoalP;
+            Int2 gp = mPathFinder.GoalP;
             mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
         }
 
         public void FindPath()
         {
-            var walls = mPathFinder.GetWalls();
+            bool[,] walls = mPathFinder.GetWalls();
             for (int y = 0; y < Height; ++y)
             {
                 for (int x = 0; x < Width; ++x)
@@ -157,15 +162,18 @@ namespace NF.AI.PathFinding.Playground
             { // show path
                 mPathLines.Clear();
                 DrawableNode prevNode = null;
-                var pp1 = mPathFinder.GetPaths().Select(x => x.Position).ToList();
-                //var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
-                foreach (var p in pp1)
+                List<Int2> pp1 = mPathFinder.GetPaths().Select(x =>
                 {
-                    var pathNode = mDrawbleNodes[p.Y, p.X];
+                    return x.Position;
+                }).ToList();
+                //var pp2 = mPathSmoother.SmoothPath(pp1, mPathFinder.IsWalkable);
+                foreach (Int2 p in pp1)
+                {
+                    DrawableNode pathNode = mDrawbleNodes[p.Y, p.X];
                     pathNode.SetFillColor(Color.Cyan);
                     if (prevNode != null)
                     {
-                        var line = new Line(pathNode.Position + mHalfNodeP, prevNode.Position + mHalfNodeP);
+                        Line line = new Line(pathNode.Position + mHalfNodeP, prevNode.Position + mHalfNodeP);
                         line.SetColor(Color.Red);
                         mPathLines.Add(line);
                     }
@@ -173,9 +181,9 @@ namespace NF.AI.PathFinding.Playground
                 }
             } // show path
 
-            var sp = mPathFinder.StartP;
+            Int2 sp = mPathFinder.StartP;
             mDrawbleNodes[sp.Y, sp.X].SetFillColor(Color.Yellow);
-            var gp = mPathFinder.GoalP;
+            Int2 gp = mPathFinder.GoalP;
             mDrawbleNodes[gp.Y, gp.X].SetFillColor(Color.Green);
         }
     }

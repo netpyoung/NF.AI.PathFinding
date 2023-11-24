@@ -1,4 +1,5 @@
 using NF.Mathematics;
+
 using System;
 
 namespace NF.AI.PathFinding.Common
@@ -11,9 +12,8 @@ namespace NF.AI.PathFinding.Common
         private int mDy;
         private int mSy;
         private int mErr;
-
-        Int2 mCurr;
-        Int2 mDest;
+        private Int2 mCurr;
+        private Int2 mDest;
 
         public void Init(in Int2 src, in Int2 dst)
         {
@@ -33,7 +33,7 @@ namespace NF.AI.PathFinding.Common
                 return false;
             }
 
-            var e2 = 2 * mErr;
+            int e2 = 2 * mErr;
 
             if (e2 >= mDy)
             {

@@ -1,4 +1,4 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
 
 namespace NF.AI.PathFinding.Common
 {
@@ -12,9 +12,9 @@ namespace NF.AI.PathFinding.Common
 
         public AStarNode(in Int2 p)
         {
-            this.G = 0;
-            this.H = 0;
-            this.Position = p;
+            G = 0;
+            H = 0;
+            Position = p;
         }
 
         public AStarNode(int x, int y) :
@@ -24,9 +24,9 @@ namespace NF.AI.PathFinding.Common
 
         public void Refresh()
         {
-            this.G = 0;
-            this.H = 0;
-            this.Parent = null;
+            G = 0;
+            H = 0;
+            Parent = null;
         }
     }
 }

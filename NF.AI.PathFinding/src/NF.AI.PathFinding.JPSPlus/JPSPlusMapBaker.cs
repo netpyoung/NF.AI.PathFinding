@@ -1,5 +1,6 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Mathematics;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace NF.AI.PathFinding.JPSPlus
         {
             Width = walls.GetLength(1);
             Height = walls.GetLength(0);
-            this.BlockLUT = new int[Height, Width];
+            BlockLUT = new int[Height, Width];
 
             List<JPSPlusMapBakerBlock> blocks = new List<JPSPlusMapBakerBlock>();
             int index = 0;
@@ -47,7 +48,7 @@ namespace NF.AI.PathFinding.JPSPlus
                     }
                 }
             }
-            this.Blocks = blocks.ToArray();
+            Blocks = blocks.ToArray();
         }
 
         public JPSPlusBakedMap Bake()
@@ -57,11 +58,14 @@ namespace NF.AI.PathFinding.JPSPlus
             MarkDiagonal();
             return new JPSPlusBakedMap(
                 BlockLUT,
-                Blocks.Select(x => new JPSPlusBakedMap.JPSPlusBakedMapBlock(x.Pos, x.JumpDistances)).ToArray());
+                Blocks.Select(x =>
+                {
+                    return new JPSPlusBakedMap.JPSPlusBakedMapBlock(x.Pos, x.JumpDistances);
+                }).ToArray());
         }
         #endregion Public
 
-        void MarkPrimary()
+        private void MarkPrimary()
         {
             for (int y = 0; y < Height; ++y)
             {
@@ -77,8 +81,8 @@ namespace NF.AI.PathFinding.JPSPlus
                     for (int d = 0b10000000; d > 0b00001111; d >>= 1)
                     {
                         EDirFlags dir = (EDirFlags)d;
-                        var primaryP = p.Foward(dir);
-                        var primaryB = GetBlockOrNull(primaryP);
+                        Int2 primaryP = p.Foward(dir);
+                        JPSPlusMapBakerBlock primaryB = GetBlockOrNull(primaryP);
                         if (primaryB == null)
                         {
                             continue;
@@ -87,45 +91,45 @@ namespace NF.AI.PathFinding.JPSPlus
                         switch (dir)
                         {
                             case EDirFlags.NORTHEAST:
+                            {
+                                Int2 p1 = p.Foward(EDirFlags.NORTH);
+                                Int2 p2 = p.Foward(EDirFlags.EAST);
+                                if (IsWalkable(p1) && IsWalkable(p2))
                                 {
-                                    var p1 = p.Foward(EDirFlags.NORTH);
-                                    var p2 = p.Foward(EDirFlags.EAST);
-                                    if (IsWalkable(p1) && IsWalkable(p2))
-                                    {
-                                        primaryB.JumpDirFlags |= EDirFlags.SOUTH | EDirFlags.WEST;
-                                    }
-                                    break;
+                                    primaryB.JumpDirFlags |= EDirFlags.SOUTH | EDirFlags.WEST;
                                 }
+                                break;
+                            }
                             case EDirFlags.SOUTHEAST:
+                            {
+                                Int2 p1 = p.Foward(EDirFlags.SOUTH);
+                                Int2 p2 = p.Foward(EDirFlags.EAST);
+                                if (IsWalkable(p1) && IsWalkable(p2))
                                 {
-                                    var p1 = p.Foward(EDirFlags.SOUTH);
-                                    var p2 = p.Foward(EDirFlags.EAST);
-                                    if (IsWalkable(p1) && IsWalkable(p2))
-                                    {
-                                        primaryB.JumpDirFlags |= EDirFlags.NORTH | EDirFlags.WEST;
-                                    }
-                                    break;
+                                    primaryB.JumpDirFlags |= EDirFlags.NORTH | EDirFlags.WEST;
                                 }
+                                break;
+                            }
                             case EDirFlags.NORTHWEST:
+                            {
+                                Int2 p1 = p.Foward(EDirFlags.NORTH);
+                                Int2 p2 = p.Foward(EDirFlags.WEST);
+                                if (IsWalkable(p1) && IsWalkable(p2))
                                 {
-                                    var p1 = p.Foward(EDirFlags.NORTH);
-                                    var p2 = p.Foward(EDirFlags.WEST);
-                                    if (IsWalkable(p1) && IsWalkable(p2))
-                                    {
-                                        primaryB.JumpDirFlags |= EDirFlags.SOUTH | EDirFlags.EAST;
-                                    }
-                                    break;
+                                    primaryB.JumpDirFlags |= EDirFlags.SOUTH | EDirFlags.EAST;
                                 }
+                                break;
+                            }
                             case EDirFlags.SOUTHWEST:
+                            {
+                                Int2 p1 = p.Foward(EDirFlags.SOUTH);
+                                Int2 p2 = p.Foward(EDirFlags.WEST);
+                                if (IsWalkable(p1) && IsWalkable(p2))
                                 {
-                                    var p1 = p.Foward(EDirFlags.SOUTH);
-                                    var p2 = p.Foward(EDirFlags.WEST);
-                                    if (IsWalkable(p1) && IsWalkable(p2))
-                                    {
-                                        primaryB.JumpDirFlags |= EDirFlags.NORTH | EDirFlags.EAST;
-                                    }
-                                    break;
+                                    primaryB.JumpDirFlags |= EDirFlags.NORTH | EDirFlags.EAST;
                                 }
+                                break;
+                            }
                             default:
                                 throw new ArgumentException();
                         }
@@ -134,7 +138,7 @@ namespace NF.AI.PathFinding.JPSPlus
             }
         }
 
-        void MarkStraight()
+        private void MarkStraight()
         {
             // . . .
             // W . .
@@ -282,7 +286,7 @@ namespace NF.AI.PathFinding.JPSPlus
             } // NORTH
         }
 
-        void MarkDiagonal()
+        private void MarkDiagonal()
         {
             // * N .
             // W . .
@@ -493,7 +497,7 @@ namespace NF.AI.PathFinding.JPSPlus
             } // SOUTH & EAST
         }
 
-        bool IsWalkable(in Int2 p)
+        private bool IsWalkable(in Int2 p)
         {
             if (!IsInBoundary(p))
             {
@@ -502,12 +506,12 @@ namespace NF.AI.PathFinding.JPSPlus
             return BlockLUT[p.Y, p.X] >= 0;
         }
 
-        bool IsInBoundary(in Int2 p)
+        private bool IsInBoundary(in Int2 p)
         {
-            return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
+            return 0 <= p.X && p.X < Width && 0 <= p.Y && p.Y < Height;
         }
 
-        JPSPlusMapBakerBlock GetBlockOrNull(in Int2 p)
+        private JPSPlusMapBakerBlock GetBlockOrNull(in Int2 p)
         {
             if (!IsInBoundary(p))
             {

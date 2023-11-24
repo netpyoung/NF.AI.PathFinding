@@ -1,17 +1,18 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
+
 using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.Common
 {
     public class BresenHamPathSmoother
     {
-        BresenHam mBresenHam = new BresenHam();
+        private readonly BresenHam mBresenHam = new BresenHam();
 
         public delegate bool DelIsWalkable(in Int2 p);
 
         public List<Int2> SmoothPath(List<Int2> path, DelIsWalkable fnIsWalkable)
         {
-            var ret = new List<Int2>();
+            List<Int2> ret = new List<Int2>();
             if (path.Count < 2)
             {
                 return ret;
@@ -20,8 +21,8 @@ namespace NF.AI.PathFinding.Common
             Int2 bp = new Int2();
             Int2 prevTargetP = new Int2();
 
-            var beginP = path[0];
-            var targetP = path[1];
+            Int2 beginP = path[0];
+            Int2 targetP = path[1];
             int index = 1;
             mBresenHam.Init(beginP, targetP);
             ret.Add(beginP);

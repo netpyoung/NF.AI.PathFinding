@@ -1,4 +1,4 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Mathematics;
 
 namespace NF.AI.PathFinding.JPSPlus

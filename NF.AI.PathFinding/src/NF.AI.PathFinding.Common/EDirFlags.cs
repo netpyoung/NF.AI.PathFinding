@@ -1,4 +1,4 @@
-﻿namespace NF.AI.PathFinding.Common
+namespace NF.AI.PathFinding.Common
 {
     public enum EDirFlags : int
     {

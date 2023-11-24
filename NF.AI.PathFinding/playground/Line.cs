@@ -1,10 +1,11 @@
-﻿using System;
 using SFML.Graphics;
 using SFML.System;
 
+using System;
+
 namespace NF.AI.PathFinding.Playground
 {
-    class Line : Drawable
+    internal class Line : Drawable
     {
         public void Refresh(Vector2f p1, Vector2f p2)
         {
@@ -18,9 +19,9 @@ namespace NF.AI.PathFinding.Playground
         {
             Tickness = ticknessAmount;
             Vector2f direction = P2 - P1;
-            Vector2f unitDirection = direction / (float)Math.Sqrt(direction.X * direction.X + direction.Y * direction.Y);
+            Vector2f unitDirection = direction / (float)Math.Sqrt((direction.X * direction.X) + (direction.Y * direction.Y));
             Vector2f unitPerpendicular = new Vector2f(-unitDirection.Y, unitDirection.X);
-            Vector2f offset = (ticknessAmount / 2f) * unitPerpendicular;
+            Vector2f offset = ticknessAmount / 2f * unitPerpendicular;
 
             mVertices[0].Position = P1 + offset;
             mVertices[1].Position = P2 + offset;
@@ -37,7 +38,8 @@ namespace NF.AI.PathFinding.Playground
         public Vector2f P1 { get; private set; }
         public Vector2f P2 { get; private set; }
         public Color Color { get; private set; }
-        Vertex[] mVertices = new Vertex[4];
+
+        private readonly Vertex[] mVertices = new Vertex[4];
 
         public void SetColor(Color color)
         {

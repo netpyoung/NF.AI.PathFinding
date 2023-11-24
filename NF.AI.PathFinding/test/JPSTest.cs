@@ -1,6 +1,7 @@
-﻿using Xunit;
 using NF.AI.PathFinding.Common;
 using NF.Mathematics;
+
+using Xunit;
 
 namespace NF.AI.PathFinding.JPS.Test
 {

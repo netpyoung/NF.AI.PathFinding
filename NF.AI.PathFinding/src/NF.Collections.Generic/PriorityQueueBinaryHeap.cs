@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NF.Collections.Generic
@@ -17,16 +17,14 @@ namespace NF.Collections.Generic
                 {
                     break;
                 }
-                var temp = mHeap[now];
-                mHeap[now] = mHeap[next];
-                mHeap[next] = temp;
+                (mHeap[next], mHeap[now]) = (mHeap[now], mHeap[next]);
                 now = next;
             }
         }
 
         public T Pop()
         {
-            var ret = mHeap[0];
+            T ret = mHeap[0];
             int lastIndex = mHeap.Count - 1;
             mHeap[0] = mHeap[lastIndex];
             mHeap.RemoveAt(lastIndex);
@@ -35,8 +33,8 @@ namespace NF.Collections.Generic
             int now = 0;
             while (true)
             {
-                int left = 2 * now + 1;
-                int right = 2 * now + 2;
+                int left = (2 * now) + 1;
+                int right = (2 * now) + 2;
 
                 int next = now;
                 if (left <= lastIndex && mHeap[next].CompareTo(mHeap[left]) < 0)
@@ -54,9 +52,7 @@ namespace NF.Collections.Generic
                     break;
                 }
 
-                var temp = mHeap[now];
-                mHeap[now] = mHeap[next];
-                mHeap[next] = temp;
+                (mHeap[next], mHeap[now]) = (mHeap[now], mHeap[next]);
                 now = next;
             }
 
@@ -65,7 +61,7 @@ namespace NF.Collections.Generic
 
         public int Count => mHeap.Count;
 
-        List<T> mHeap = new List<T>();
+        private readonly List<T> mHeap = new List<T>();
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
+
 using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.Common
@@ -9,15 +10,24 @@ namespace NF.AI.PathFinding.Common
         {
             switch (dir)
             {
-                case EDirFlags.NORTHWEST: return 0;
-                case EDirFlags.NORTH: return 1;
-                case EDirFlags.NORTHEAST: return 2;
-                case EDirFlags.WEST: return 3;
-                case EDirFlags.EAST: return 4;
-                case EDirFlags.SOUTHWEST: return 5;
-                case EDirFlags.SOUTH: return 6;
-                case EDirFlags.SOUTHEAST: return 7;
-                default: return -1;
+                case EDirFlags.NORTHWEST:
+                    return 0;
+                case EDirFlags.NORTH:
+                    return 1;
+                case EDirFlags.NORTHEAST:
+                    return 2;
+                case EDirFlags.WEST:
+                    return 3;
+                case EDirFlags.EAST:
+                    return 4;
+                case EDirFlags.SOUTHWEST:
+                    return 5;
+                case EDirFlags.SOUTH:
+                    return 6;
+                case EDirFlags.SOUTHEAST:
+                    return 7;
+                default:
+                    return -1;
             }
         }
 
@@ -61,7 +71,7 @@ namespace NF.AI.PathFinding.Common
             return EDirFlags.NONE;
         }
 
-        static Dictionary<EDirFlags, Int2> DirToPos = new Dictionary<EDirFlags, Int2>()
+        private static readonly Dictionary<EDirFlags, Int2> DirToPos = new Dictionary<EDirFlags, Int2>()
         {
             { EDirFlags.NORTH,new Int2(0, -1) },
             { EDirFlags.SOUTH,new Int2(0, 1) },

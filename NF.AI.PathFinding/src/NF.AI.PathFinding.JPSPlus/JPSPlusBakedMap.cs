@@ -1,4 +1,4 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
 
 namespace NF.AI.PathFinding.JPSPlus
 {
@@ -23,8 +23,8 @@ namespace NF.AI.PathFinding.JPSPlus
 
         public JPSPlusBakedMap(int[,] blockLUT, JPSPlusBakedMapBlock[] blocks)
         {
-            this.BlockLUT = blockLUT;
-            this.Blocks = blocks;
+            BlockLUT = blockLUT;
+            Blocks = blocks;
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
+
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -13,12 +14,12 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =======================
         // Members
         // =======================
-        AStarNode mStart = null;
-        AStarNode mGoal = null;
-        readonly Dictionary<Int2, AStarNode> mCreateNodes = new Dictionary<Int2, AStarNode>();
-        readonly PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)>();
-        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        bool[,] mWalls = null;
+        private AStarNode mStart = null;
+        private AStarNode mGoal = null;
+        private readonly Dictionary<Int2, AStarNode> mCreateNodes = new Dictionary<Int2, AStarNode>();
+        private readonly PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)> mOpenList = new PriorityQueue<(AStarNode AStarNode, EDirFlags Dir)>();
+        private readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
+        private bool[,] mWalls = null;
 
         public int Width { get; private set; }
         public int Height { get; private set; }
@@ -42,16 +43,16 @@ namespace NF.AI.PathFinding.JPSOrthogonal
 
         public void Init(bool[,] walls)
         {
-            this.Width = walls.GetLength(1);
-            this.Height = walls.GetLength(0);
-            this.mWalls = walls;
+            Width = walls.GetLength(1);
+            Height = walls.GetLength(0);
+            mWalls = walls;
         }
 
         public bool StepAll(int stepCount = int.MaxValue)
         {
             mOpenList.Clear();
             mCloseList.Clear();
-            foreach (var AStarNode in mCreateNodes.Values)
+            foreach (AStarNode AStarNode in mCreateNodes.Values)
             {
                 AStarNode.Refresh();
             }
@@ -77,7 +78,7 @@ namespace NF.AI.PathFinding.JPSOrthogonal
                 (AStarNode AStarNode, EDirFlags Dir) curr = mOpenList.Dequeue();
                 AStarNode currNode = curr.AStarNode;
                 EDirFlags currDir = curr.Dir;
-                mCloseList.Add(currNode);
+                _ = mCloseList.Add(currNode);
 
                 Int2 currPos = currNode.Position;
                 Int2 goalPos = mGoal.Position;
@@ -180,13 +181,13 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AStarNode GetStart()
         {
-            return this.mStart;
+            return mStart;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AStarNode GetGoal()
         {
-            return this.mGoal;
+            return mGoal;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -231,9 +232,9 @@ namespace NF.AI.PathFinding.JPSOrthogonal
             return !mWalls[p.Y, p.X];
         }
 
-        bool IsInBoundary(in Int2 p)
+        private bool IsInBoundary(in Int2 p)
         {
-            return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
+            return 0 <= p.X && p.X < Width && 0 <= p.Y && p.Y < Height;
         }
 
         internal EDirFlags NeighbourDir(in Int2 pos)
@@ -420,32 +421,36 @@ namespace NF.AI.PathFinding.JPSOrthogonal
         // =========================================
         // Statics
         // =========================================
-        static EDirFlags NaturalNeighbours(EDirFlags dir)
+        private static EDirFlags NaturalNeighbours(EDirFlags dir)
         {
 
             switch (dir)
             {
-                case EDirFlags.NORTHEAST: return EDirFlags.NORTHEAST | EDirFlags.NORTH | EDirFlags.EAST;
-                case EDirFlags.NORTHWEST: return EDirFlags.NORTHWEST | EDirFlags.NORTH | EDirFlags.WEST;
-                case EDirFlags.SOUTHEAST: return EDirFlags.SOUTHEAST | EDirFlags.SOUTH | EDirFlags.EAST;
-                case EDirFlags.SOUTHWEST: return EDirFlags.SOUTHWEST | EDirFlags.SOUTH | EDirFlags.WEST;
+                case EDirFlags.NORTHEAST:
+                    return EDirFlags.NORTHEAST | EDirFlags.NORTH | EDirFlags.EAST;
+                case EDirFlags.NORTHWEST:
+                    return EDirFlags.NORTHWEST | EDirFlags.NORTH | EDirFlags.WEST;
+                case EDirFlags.SOUTHEAST:
+                    return EDirFlags.SOUTHEAST | EDirFlags.SOUTH | EDirFlags.EAST;
+                case EDirFlags.SOUTHWEST:
+                    return EDirFlags.SOUTHWEST | EDirFlags.SOUTH | EDirFlags.WEST;
                 default:
                     return dir;
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static int G(AStarNode from, AStarNode adjacent)
+        private static int G(AStarNode from, AStarNode adjacent)
         {
             // cost so far to reach n 
             Int2 p = from.Position - adjacent.Position;
             if (p.X == 0 || p.Y == 0)
             {
-                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 10;
+                return from.G + (Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 10);
             }
             else
             {
-                return from.G + Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 14;
+                return from.G + (Math.Max(Math.Abs(p.X), Math.Abs(p.Y)) * 14);
             }
         }
 

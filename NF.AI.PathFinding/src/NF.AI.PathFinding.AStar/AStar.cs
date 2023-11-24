@@ -1,6 +1,7 @@
 using NF.AI.PathFinding.Common;
 using NF.Collections.Generic;
 using NF.Mathematics;
+
 using System;
 using System.Collections.Generic;
 
@@ -11,12 +12,12 @@ namespace NF.AI.PathFinding.AStar
         // ============================
         // Private
         // ============================
-        AStarNode mStart = null;
-        AStarNode mGoal = null;
-        readonly AStarNode[,] mNodes;
-        readonly PriorityQueue<AStarNode> mOpenList = new PriorityQueue<AStarNode>();
-        readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
-        readonly bool[,] mWalls;
+        private AStarNode mStart = null;
+        private AStarNode mGoal = null;
+        private readonly AStarNode[,] mNodes;
+        private readonly PriorityQueue<AStarNode> mOpenList = new PriorityQueue<AStarNode>();
+        private readonly HashSet<AStarNode> mCloseList = new HashSet<AStarNode>();
+        private readonly bool[,] mWalls;
 
         // ============================
         // Properties
@@ -70,7 +71,7 @@ namespace NF.AI.PathFinding.AStar
                     return true;
                 }
 
-                mCloseList.Add(curr);
+                _ = mCloseList.Add(curr);
 
                 for (int i = 0b10000000; i > 0; i >>= 1)
                 {
@@ -212,14 +213,17 @@ namespace NF.AI.PathFinding.AStar
         // ============================
         // Private Methods
         // ============================
-        bool IsInBoundary(in Int2 pos) => IsInBoundary(pos.X, pos.Y);
-
-        bool IsInBoundary(int x, int y)
+        private bool IsInBoundary(in Int2 pos)
         {
-            return (0 <= x && x < this.Width) && (0 <= y && y < this.Height);
+            return IsInBoundary(pos.X, pos.Y);
         }
 
-        AStarNode GetNodeOrNull(in Int2 pos)
+        private bool IsInBoundary(int x, int y)
+        {
+            return 0 <= x && x < Width && 0 <= y && y < Height;
+        }
+
+        private AStarNode GetNodeOrNull(in Int2 pos)
         {
             int x = pos.X;
             int y = pos.Y;
@@ -236,12 +240,13 @@ namespace NF.AI.PathFinding.AStar
             mNodes[y, x] = node;
             return node;
         }
-        bool IsWall(in Int2 pos)
+
+        private bool IsWall(in Int2 pos)
         {
             return mWalls[pos.Y, pos.X];
         }
-       
-        static int G(AStarNode from, AStarNode adjacent)
+
+        private static int G(AStarNode from, AStarNode adjacent)
         {
             // cost so far to reach n 
             Int2 p = from.Position - adjacent.Position;
@@ -258,7 +263,7 @@ namespace NF.AI.PathFinding.AStar
         internal static int H(AStarNode n, AStarNode goal)
         {
             // calculate estimated cost
-            return Math.Abs(goal.Position.X - n.Position.X) + Math.Abs(goal.Position.Y - n.Position.Y) * 10;
+            return Math.Abs(goal.Position.X - n.Position.X) + (Math.Abs(goal.Position.Y - n.Position.Y) * 10);
         }
     }
 }

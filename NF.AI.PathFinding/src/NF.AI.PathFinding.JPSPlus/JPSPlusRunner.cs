@@ -1,24 +1,25 @@
-﻿using NF.AI.PathFinding.Common;
+using NF.AI.PathFinding.Common;
 using NF.Mathematics;
+
 using System.Collections.Generic;
 
 namespace NF.AI.PathFinding.JPSPlus
 {
     public class JPSPlusRunner
     {
-        JPSPlus mJpsPlus = new JPSPlus();
-        JPSPlusMapBaker mBaker = new JPSPlusMapBaker();
-        bool[,] mWalls = null;
+        private readonly JPSPlus mJpsPlus = new JPSPlus();
+        private readonly JPSPlusMapBaker mBaker = new JPSPlusMapBaker();
+        private bool[,] mWalls = null;
 
         public int Width { get; private set; }
         public int Height { get; private set; }
-        
+
         public Int2 StartP => mStartP.Value;
         public Int2 GoalP => mGoalP.Value;
 
-        bool mIsWallChanged = true;
-        Int2? mStartP = null;
-        Int2? mGoalP = null;
+        private bool mIsWallChanged = true;
+        private Int2? mStartP = null;
+        private Int2? mGoalP = null;
 
         public JPSPlusRunner(int width, int height)
         {
@@ -82,8 +83,8 @@ namespace NF.AI.PathFinding.JPSPlus
                 mJpsPlus.Init(mBaker.Bake());
                 mIsWallChanged = false;
             }
-            mJpsPlus.SetStart(mStartP.Value);
-            mJpsPlus.SetGoal(mGoalP.Value);
+            _ = mJpsPlus.SetStart(mStartP.Value);
+            _ = mJpsPlus.SetGoal(mGoalP.Value);
             return mJpsPlus.StepAll(stepCount);
         }
 
@@ -107,9 +108,9 @@ namespace NF.AI.PathFinding.JPSPlus
             return mJpsPlus.GetPaths();
         }
 
-        bool IsInBoundary(in Int2 p)
+        private bool IsInBoundary(in Int2 p)
         {
-            return (0 <= p.X && p.X < this.Width) && (0 <= p.Y && p.Y < this.Height);
+            return 0 <= p.X && p.X < Width && 0 <= p.Y && p.Y < Height;
         }
 
     }

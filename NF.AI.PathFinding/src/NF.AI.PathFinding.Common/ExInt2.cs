@@ -1,4 +1,4 @@
-﻿using NF.Mathematics;
+using NF.Mathematics;
 
 namespace NF.AI.PathFinding.Common
 {
